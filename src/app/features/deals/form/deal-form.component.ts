@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PipelineStage } from '../../../core/models/pipeline.model';
 import { DealService } from '../../../core/services/deal.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { PipelineService } from '../../../core/services/pipeline.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -87,6 +89,8 @@ export class DealFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
@@ -115,27 +119,37 @@ export class DealFormComponent implements OnInit {
   }
 
   private loadStages(): void {
-    this.pipelineService.list().subscribe({
-      next: (stages) => this.stages.set(stages.sort((a, b) => a.order - b.order)),
-    });
+    this.pipelineService
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stages) => this.stages.set(stages.sort((a, b) => a.order - b.order)),
+      });
   }
 
   private loadDeal(id: string): void {
     this.pageLoading.set(true);
-    this.dealService.getById(id).subscribe({
-      next: (deal) => {
-        this.form.patchValue({
-          title: deal.title,
-          value: deal.value,
-          currency: deal.currency,
-          stage_id: deal.stage_id,
-          expected_close_date: deal.expected_close_date ?? '',
-          notes: deal.notes ?? '',
-        });
-        this.pageLoading.set(false);
-      },
-      error: () => { this.pageLoading.set(false); this.toast.error('Error', 'No se pudo cargar el deal'); this.goBack(); },
-    });
+    this.dealService
+      .getById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (deal) => {
+          this.form.patchValue({
+            title: deal.title,
+            value: deal.value,
+            currency: deal.currency,
+            stage_id: deal.stage_id,
+            expected_close_date: deal.expected_close_date ?? '',
+            notes: deal.notes ?? '',
+          });
+          this.pageLoading.set(false);
+        },
+        error: (err: unknown) => {
+          this.pageLoading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar el deal');
+          this.goBack();
+        },
+      });
   }
 
   fieldError(field: string): string {
@@ -146,7 +160,10 @@ export class DealFormComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.saving.set(true);
     const value = this.form.getRawValue();
     const payload = {
@@ -162,11 +179,19 @@ export class DealFormComponent implements OnInit {
       ? this.dealService.update(this.dealId!, payload)
       : this.dealService.create(payload);
 
-    req.subscribe({
-      next: (deal) => { this.toast.success(this.isEdit() ? 'Deal actualizado' : 'Deal creado'); this.router.navigate(['/deals', deal.id]); },
-      error: () => { this.saving.set(false); this.toast.error('Error', 'No se pudo guardar el deal'); },
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (deal) => {
+        this.toast.success(this.isEdit() ? 'Deal actualizado' : 'Deal creado');
+        this.router.navigate(['/deals', deal.id]);
+      },
+      error: (err: unknown) => {
+        this.saving.set(false);
+        this.errorHandler.handle(err, 'Error al guardar el deal');
+      },
     });
   }
 
-  goBack(): void { this.router.navigate(['/deals']); }
+  goBack(): void {
+    this.router.navigate(['/deals']);
+  }
 }

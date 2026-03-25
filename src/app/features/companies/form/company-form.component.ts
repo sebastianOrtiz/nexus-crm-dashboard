@@ -1,7 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CompanyService } from '../../../core/services/company.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -90,6 +92,8 @@ export class CompanyFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
@@ -118,22 +122,29 @@ export class CompanyFormComponent implements OnInit {
 
   private loadCompany(id: string): void {
     this.pageLoading.set(true);
-    this.companyService.getById(id).subscribe({
-      next: (company) => {
-        this.form.patchValue({
-          name: company.name,
-          domain: company.domain ?? '',
-          website: company.website ?? '',
-          industry: company.industry ?? '',
-          size: company.size ?? '',
-          phone: company.phone ?? '',
-          address: company.address ?? '',
-          notes: company.notes ?? '',
-        });
-        this.pageLoading.set(false);
-      },
-      error: () => { this.pageLoading.set(false); this.toast.error('Error', 'No se pudo cargar la empresa'); this.goBack(); },
-    });
+    this.companyService
+      .getById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (company) => {
+          this.form.patchValue({
+            name: company.name,
+            domain: company.domain ?? '',
+            website: company.website ?? '',
+            industry: company.industry ?? '',
+            size: company.size ?? '',
+            phone: company.phone ?? '',
+            address: company.address ?? '',
+            notes: company.notes ?? '',
+          });
+          this.pageLoading.set(false);
+        },
+        error: (err: unknown) => {
+          this.pageLoading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar la empresa');
+          this.goBack();
+        },
+      });
   }
 
   fieldError(field: string): string {
@@ -144,7 +155,10 @@ export class CompanyFormComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.saving.set(true);
     const value = this.form.getRawValue();
     const payload = {
@@ -162,11 +176,19 @@ export class CompanyFormComponent implements OnInit {
       ? this.companyService.update(this.companyId!, payload)
       : this.companyService.create(payload);
 
-    req.subscribe({
-      next: (company) => { this.toast.success(this.isEdit() ? 'Empresa actualizada' : 'Empresa creada'); this.router.navigate(['/companies', company.id]); },
-      error: () => { this.saving.set(false); this.toast.error('Error', 'No se pudo guardar la empresa'); },
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (company) => {
+        this.toast.success(this.isEdit() ? 'Empresa actualizada' : 'Empresa creada');
+        this.router.navigate(['/companies', company.id]);
+      },
+      error: (err: unknown) => {
+        this.saving.set(false);
+        this.errorHandler.handle(err, 'Error al guardar la empresa');
+      },
     });
   }
 
-  goBack(): void { this.router.navigate(['/companies']); }
+  goBack(): void {
+    this.router.navigate(['/companies']);
+  }
 }

@@ -1,5 +1,6 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import {
@@ -158,6 +159,7 @@ import { StatsCardComponent } from '../../shared/components/stats-card/stats-car
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly stats = signal<DashboardStats | null>(null);
@@ -194,25 +196,25 @@ export class DashboardComponent implements OnInit {
       if (pending === 0) this.loading.set(false);
     };
 
-    this.dashboardService.getStats().subscribe({
-      next: (data) => { this.stats.set(data); done(); },
-      error: () => done(),
-    });
+    this.dashboardService
+      .getStats()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (data) => { this.stats.set(data); done(); }, error: () => done() });
 
-    this.dashboardService.getPipelineFunnel().subscribe({
-      next: (data) => { this.funnel.set(data); done(); },
-      error: () => done(),
-    });
+    this.dashboardService
+      .getPipelineFunnel()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (data) => { this.funnel.set(data); done(); }, error: () => done() });
 
-    this.dashboardService.getRevenue(6).subscribe({
-      next: (data) => { this.buildRevenueChart(data); done(); },
-      error: () => done(),
-    });
+    this.dashboardService
+      .getRevenue(6)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (data) => { this.buildRevenueChart(data); done(); }, error: () => done() });
 
-    this.dashboardService.getRecentActivity(10).subscribe({
-      next: (data) => { this.recentActivity.set(data); done(); },
-      error: () => done(),
-    });
+    this.dashboardService
+      .getRecentActivity(10)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (data) => { this.recentActivity.set(data); done(); }, error: () => done() });
   }
 
   private buildRevenueChart(data: RevenueDataPoint[]): void {

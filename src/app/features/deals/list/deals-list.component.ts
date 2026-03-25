@@ -1,27 +1,23 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { DEFAULT_PAGE_SIZE } from '../../../core/constants';
+import { DEAL_STATUS_LABELS } from '../../../core/labels';
 import { Deal, DealStatus } from '../../../core/models/deal.model';
 import { DealService } from '../../../core/services/deal.service';
-import { PipelineService } from '../../../core/services/pipeline.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { BadgeVariant } from '../../../shared/components/badge/badge.component';
 
 const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
   open: 'info',
   won: 'success',
   lost: 'danger',
-};
-
-const STATUS_LABELS: Record<DealStatus, string> = {
-  open: 'Abierto',
-  won: 'Ganado',
-  lost: 'Perdido',
 };
 
 /** Deals list page */
@@ -163,6 +159,8 @@ export class DealsListComponent implements OnInit {
   private readonly dealService = inject(DealService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly deals = signal<Deal[]>([]);
   readonly loading = signal(true);
@@ -172,11 +170,9 @@ export class DealsListComponent implements OnInit {
   readonly deleteTarget = signal<Deal | null>(null);
 
   statusFilter = '';
-  readonly pageSize = 20;
+  readonly pageSize = DEFAULT_PAGE_SIZE;
 
-  get totalPages(): () => number {
-    return () => Math.ceil(this.total() / this.pageSize);
-  }
+  readonly totalPages = () => Math.ceil(this.total() / this.pageSize);
 
   ngOnInit(): void {
     this.loadDeals();
@@ -184,32 +180,69 @@ export class DealsListComponent implements OnInit {
 
   loadDeals(): void {
     this.loading.set(true);
-    this.dealService.list({
-      status: (this.statusFilter as DealStatus) || undefined,
-      page: this.currentPage(),
-      page_size: this.pageSize,
-    }).subscribe({
-      next: (res) => { this.deals.set(res.items); this.total.set(res.total); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudieron cargar los deals'); },
-    });
+    this.dealService
+      .list({
+        status: (this.statusFilter as DealStatus) || undefined,
+        page: this.currentPage(),
+        page_size: this.pageSize,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.deals.set(res.items);
+          this.total.set(res.total);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar deals');
+        },
+      });
   }
 
-  goToPage(page: number): void { this.currentPage.set(page); this.loadDeals(); }
-  goToCreate(): void { this.router.navigate(['/deals/new']); }
-  goToDetail(id: string): void { this.router.navigate(['/deals', id]); }
-  goToEdit(id: string): void { this.router.navigate(['/deals', id, 'edit']); }
+  goToPage(page: number): void {
+    this.currentPage.set(page);
+    this.loadDeals();
+  }
 
-  statusLabel(status: DealStatus): string { return STATUS_LABELS[status]; }
-  statusVariant(status: DealStatus): BadgeVariant { return STATUS_VARIANT[status]; }
+  goToCreate(): void {
+    this.router.navigate(['/deals/new']);
+  }
 
-  confirmDelete(deal: Deal): void { this.deleteTarget.set(deal); this.showDeleteDialog.set(true); }
+  goToDetail(id: string): void {
+    this.router.navigate(['/deals', id]);
+  }
+
+  goToEdit(id: string): void {
+    this.router.navigate(['/deals', id, 'edit']);
+  }
+
+  statusLabel(status: DealStatus): string {
+    return DEAL_STATUS_LABELS[status] ?? status;
+  }
+
+  statusVariant(status: DealStatus): BadgeVariant {
+    return STATUS_VARIANT[status];
+  }
+
+  confirmDelete(deal: Deal): void {
+    this.deleteTarget.set(deal);
+    this.showDeleteDialog.set(true);
+  }
 
   deleteDeal(): void {
     const target = this.deleteTarget();
     if (!target) return;
-    this.dealService.remove(target.id).subscribe({
-      next: () => { this.showDeleteDialog.set(false); this.toast.success('Deal eliminado'); this.loadDeals(); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar el deal'),
-    });
+    this.dealService
+      .remove(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog.set(false);
+          this.toast.success('Deal eliminado');
+          this.loadDeals();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar el deal'),
+      });
   }
 }

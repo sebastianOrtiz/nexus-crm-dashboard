@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { User } from '../../../core/models/user.model';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -65,6 +67,8 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 export class SettingsProfileComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly user = signal<User | null>(null);
@@ -78,14 +82,17 @@ export class SettingsProfileComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.userService.getProfile().subscribe({
-      next: (u) => {
-        this.user.set(u);
-        this.form.patchValue({ first_name: u.first_name, last_name: u.last_name, email: u.email });
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.userService
+      .getProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (u) => {
+          this.user.set(u);
+          this.form.patchValue({ first_name: u.first_name, last_name: u.last_name, email: u.email });
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   fieldError(field: string): string {
@@ -97,12 +104,26 @@ export class SettingsProfileComponent implements OnInit {
   }
 
   save(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.saving.set(true);
     const v = this.form.getRawValue();
-    this.userService.updateProfile({ first_name: v.first_name!, last_name: v.last_name!, email: v.email! }).subscribe({
-      next: (u) => { this.user.set(u); this.saving.set(false); this.form.markAsPristine(); this.toast.success('Perfil actualizado'); },
-      error: () => { this.saving.set(false); this.toast.error('Error', 'No se pudo actualizar el perfil'); },
-    });
+    this.userService
+      .updateProfile({ first_name: v.first_name!, last_name: v.last_name!, email: v.email! })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (u) => {
+          this.user.set(u);
+          this.saving.set(false);
+          this.form.markAsPristine();
+          this.toast.success('Perfil actualizado');
+        },
+        error: (err: unknown) => {
+          this.saving.set(false);
+          this.errorHandler.handle(err, 'Error al actualizar el perfil');
+        },
+      });
   }
 }

@@ -1,10 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
+import { DEFAULT_PAGE_SIZE } from '../../../core/constants';
 import { Company } from '../../../core/models/company.model';
 import { CompanyService } from '../../../core/services/company.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -139,6 +142,8 @@ export class CompaniesListComponent implements OnInit {
   private readonly companyService = inject(CompanyService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly searchSubject = new Subject<string>();
 
   readonly companies = signal<Company[]>([]);
@@ -149,26 +154,36 @@ export class CompaniesListComponent implements OnInit {
   readonly deleteTarget = signal<Company | null>(null);
 
   searchQuery = '';
-  readonly pageSize = 20;
+  readonly pageSize = DEFAULT_PAGE_SIZE;
 
-  get totalPages(): () => number {
-    return () => Math.ceil(this.total() / this.pageSize);
-  }
+  readonly totalPages = () => Math.ceil(this.total() / this.pageSize);
 
   ngOnInit(): void {
-    this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
-      this.currentPage.set(1);
-      this.loadCompanies();
-    });
+    this.searchSubject
+      .pipe(debounceTime(400), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(1);
+        this.loadCompanies();
+      });
     this.loadCompanies();
   }
 
   loadCompanies(): void {
     this.loading.set(true);
-    this.companyService.list({ search: this.searchQuery || undefined, page: this.currentPage(), page_size: this.pageSize }).subscribe({
-      next: (res) => { this.companies.set(res.items); this.total.set(res.total); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudieron cargar las empresas'); },
-    });
+    this.companyService
+      .list({ search: this.searchQuery || undefined, page: this.currentPage(), page_size: this.pageSize })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.companies.set(res.items);
+          this.total.set(res.total);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar empresas');
+        },
+      });
   }
 
   onSearchChange(value: string): void {
@@ -176,10 +191,22 @@ export class CompaniesListComponent implements OnInit {
     this.searchSubject.next(value);
   }
 
-  goToPage(page: number): void { this.currentPage.set(page); this.loadCompanies(); }
-  goToCreate(): void { this.router.navigate(['/companies/new']); }
-  goToDetail(id: string): void { this.router.navigate(['/companies', id]); }
-  goToEdit(id: string): void { this.router.navigate(['/companies', id, 'edit']); }
+  goToPage(page: number): void {
+    this.currentPage.set(page);
+    this.loadCompanies();
+  }
+
+  goToCreate(): void {
+    this.router.navigate(['/companies/new']);
+  }
+
+  goToDetail(id: string): void {
+    this.router.navigate(['/companies', id]);
+  }
+
+  goToEdit(id: string): void {
+    this.router.navigate(['/companies', id, 'edit']);
+  }
 
   confirmDelete(company: Company): void {
     this.deleteTarget.set(company);
@@ -189,9 +216,16 @@ export class CompaniesListComponent implements OnInit {
   deleteCompany(): void {
     const target = this.deleteTarget();
     if (!target) return;
-    this.companyService.remove(target.id).subscribe({
-      next: () => { this.showDeleteDialog.set(false); this.toast.success('Empresa eliminada'); this.loadCompanies(); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar la empresa'),
-    });
+    this.companyService
+      .remove(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog.set(false);
+          this.toast.success('Empresa eliminada');
+          this.loadCompanies();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la empresa'),
+      });
   }
 }

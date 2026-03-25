@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Contact } from '../../../core/models/contact.model';
 import { ContactService } from '../../../core/services/contact.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -106,6 +108,8 @@ export class ContactDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly contact = signal<Contact | null>(null);
   readonly loading = signal(true);
@@ -113,10 +117,20 @@ export class ContactDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.contactService.getById(id).subscribe({
-      next: (c) => { this.contact.set(c); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar el contacto'); this.goBack(); },
-    });
+    this.contactService
+      .getById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (c) => {
+          this.contact.set(c);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar el contacto');
+          this.goBack();
+        },
+      });
   }
 
   initials(): string {
@@ -128,10 +142,16 @@ export class ContactDetailComponent implements OnInit {
   deleteContact(): void {
     const c = this.contact();
     if (!c) return;
-    this.contactService.remove(c.id).subscribe({
-      next: () => { this.toast.success('Contacto eliminado'); this.router.navigate(['/contacts']); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar el contacto'),
-    });
+    this.contactService
+      .remove(c.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success('Contacto eliminado');
+          this.router.navigate(['/contacts']);
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar el contacto'),
+      });
   }
 
   goBack(): void {

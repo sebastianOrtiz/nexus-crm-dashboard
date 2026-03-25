@@ -7,11 +7,14 @@ import {
   moveItemInArray,
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { KANBAN_PAGE_SIZE } from '../../../core/constants';
 import { Deal } from '../../../core/models/deal.model';
 import { PipelineStage } from '../../../core/models/pipeline.model';
 import { DealService } from '../../../core/services/deal.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { PipelineService } from '../../../core/services/pipeline.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -159,6 +162,8 @@ export class DealsKanbanComponent implements OnInit {
   private readonly pipelineService = inject(PipelineService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly columns = signal<KanbanColumn[]>([]);
   readonly loading = signal(true);
@@ -170,27 +175,39 @@ export class DealsKanbanComponent implements OnInit {
   private loadBoard(): void {
     this.loading.set(true);
 
-    this.pipelineService.list().subscribe({
-      next: (stages) => {
-        const sortedStages = [...stages].sort((a, b) => a.order - b.order);
-        this.dealService.list({ page_size: 200 }).subscribe({
-          next: (res) => {
-            const columnMap = new Map<string, KanbanColumn>();
-            for (const stage of sortedStages) {
-              columnMap.set(stage.id, { stage, deals: [] });
-            }
-            for (const deal of res.items) {
-              const col = columnMap.get(deal.stage_id);
-              if (col) col.deals.push(deal);
-            }
-            this.columns.set(Array.from(columnMap.values()));
-            this.loading.set(false);
-          },
-          error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar los deals'); },
-        });
-      },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar el pipeline'); },
-    });
+    this.pipelineService
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stages) => {
+          const sortedStages = [...stages].sort((a, b) => a.order - b.order);
+          this.dealService
+            .list({ page_size: KANBAN_PAGE_SIZE })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (res) => {
+                const columnMap = new Map<string, KanbanColumn>();
+                for (const stage of sortedStages) {
+                  columnMap.set(stage.id, { stage, deals: [] });
+                }
+                for (const deal of res.items) {
+                  const col = columnMap.get(deal.stage_id);
+                  if (col) col.deals.push(deal);
+                }
+                this.columns.set(Array.from(columnMap.values()));
+                this.loading.set(false);
+              },
+              error: (err: unknown) => {
+                this.loading.set(false);
+                this.errorHandler.handle(err, 'Error al cargar los deals');
+              },
+            });
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar el pipeline');
+        },
+      });
   }
 
   connectedDropLists(): string[] {
@@ -210,13 +227,16 @@ export class DealsKanbanComponent implements OnInit {
     const deal = event.item.data as Deal;
     transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
 
-    this.dealService.move(deal.id, { stage_id: targetColumn.stage.id }).subscribe({
-      error: () => {
-        // Revert on error
-        transferArrayItem(event.container.data, event.previousContainer.data, event.currentIndex, event.previousIndex);
-        this.toast.error('Error', 'No se pudo mover el deal');
-      },
-    });
+    this.dealService
+      .move(deal.id, { stage_id: targetColumn.stage.id })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: (err: unknown) => {
+          // Revert on error
+          transferArrayItem(event.container.data, event.previousContainer.data, event.currentIndex, event.previousIndex);
+          this.errorHandler.handle(err, 'Error al mover el deal');
+        },
+      });
   }
 
   goToCreate(): void {

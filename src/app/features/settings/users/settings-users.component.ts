@@ -1,27 +1,25 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { User } from '../../../core/models/user.model';
+import { ROLE_LABELS } from '../../../core/labels';
 import { UserRole } from '../../../core/models/auth.model';
+import { User } from '../../../core/models/user.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
-import { BadgeComponent } from '../../../shared/components/badge/badge.component';
-import { BadgeVariant } from '../../../shared/components/badge/badge.component';
+import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
-const ROLE_VARIANT: Record<UserRole, BadgeVariant> = {
+const ROLE_VARIANT: Record<string, BadgeVariant> = {
   owner: 'purple',
   admin: 'info',
   member: 'default',
-};
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  owner: 'Propietario',
-  admin: 'Admin',
-  member: 'Miembro',
+  sales_rep: 'warning',
+  viewer: 'default',
 };
 
 /** User management page (admin/owner only) */
@@ -153,6 +151,8 @@ export class SettingsUsersComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly users = signal<User[]>([]);
@@ -174,20 +174,40 @@ export class SettingsUsersComponent implements OnInit {
   }
 
   loadUsers(): void {
-    this.userService.listUsers().subscribe({
-      next: (users) => { this.users.set(users); this.loading.set(false); },
-      error: () => this.loading.set(false),
-    });
+    this.userService
+      .listUsers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (users) => {
+          this.users.set(users);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   inviteUser(): void {
-    if (this.inviteForm.invalid) { this.inviteForm.markAllAsTouched(); return; }
+    if (this.inviteForm.invalid) {
+      this.inviteForm.markAllAsTouched();
+      return;
+    }
     this.inviting.set(true);
     const v = this.inviteForm.getRawValue();
-    this.userService.inviteUser({ email: v.email!, role: v.role as UserRole }).subscribe({
-      next: () => { this.showInviteModal.set(false); this.inviting.set(false); this.toast.success('Invitación enviada'); this.loadUsers(); },
-      error: () => { this.inviting.set(false); this.toast.error('Error', 'No se pudo enviar la invitación'); },
-    });
+    this.userService
+      .inviteUser({ email: v.email!, role: v.role as UserRole })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showInviteModal.set(false);
+          this.inviting.set(false);
+          this.toast.success('Invitación enviada');
+          this.loadUsers();
+        },
+        error: (err: unknown) => {
+          this.inviting.set(false);
+          this.errorHandler.handle(err, 'Error al enviar la invitación');
+        },
+      });
   }
 
   confirmDeactivate(user: User): void {
@@ -198,12 +218,24 @@ export class SettingsUsersComponent implements OnInit {
   deactivateUser(): void {
     const target = this.deactivateTarget();
     if (!target) return;
-    this.userService.deactivateUser(target.id).subscribe({
-      next: () => { this.showDeactivateDialog.set(false); this.toast.success('Usuario desactivado'); this.loadUsers(); },
-      error: () => this.toast.error('Error', 'No se pudo desactivar el usuario'),
-    });
+    this.userService
+      .deactivateUser(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeactivateDialog.set(false);
+          this.toast.success('Usuario desactivado');
+          this.loadUsers();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al desactivar el usuario'),
+      });
   }
 
-  roleLabel(role: UserRole): string { return ROLE_LABELS[role]; }
-  roleVariant(role: UserRole): BadgeVariant { return ROLE_VARIANT[role]; }
+  roleLabel(role: UserRole): string {
+    return ROLE_LABELS[role] ?? role;
+  }
+
+  roleVariant(role: UserRole): BadgeVariant {
+    return ROLE_VARIANT[role] ?? 'default';
+  }
 }

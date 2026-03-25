@@ -1,25 +1,19 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DEFAULT_PAGE_SIZE } from '../../core/constants';
+import { ACTIVITY_TYPE_LABELS } from '../../core/labels';
 import { Activity, ActivityType } from '../../core/models/activity.model';
 import { ActivityService } from '../../core/services/activity.service';
+import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { ToastService } from '../../core/services/toast.service';
-import { BadgeComponent } from '../../shared/components/badge/badge.component';
-import { BadgeVariant } from '../../shared/components/badge/badge.component';
+import { BadgeComponent, BadgeVariant } from '../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
-
-const TYPE_LABELS: Record<ActivityType, string> = {
-  call: 'Llamada',
-  email: 'Email',
-  meeting: 'Reunión',
-  note: 'Nota',
-  task: 'Tarea',
-};
 
 const TYPE_VARIANT: Record<ActivityType, BadgeVariant> = {
   call: 'info',
@@ -217,6 +211,8 @@ interface ActivityGroup {
 export class ActivitiesComponent implements OnInit {
   private readonly activityService = inject(ActivityService);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly activities = signal<Activity[]>([]);
@@ -232,7 +228,7 @@ export class ActivitiesComponent implements OnInit {
   readonly activityTypes: ActivityType[] = ['call', 'email', 'meeting', 'note', 'task'];
 
   private currentPage = 1;
-  private readonly pageSize = 20;
+  private readonly pageSize = DEFAULT_PAGE_SIZE;
 
   readonly form = this.fb.group({
     type: ['call' as ActivityType, [Validators.required]],
@@ -241,19 +237,17 @@ export class ActivitiesComponent implements OnInit {
     scheduled_at: [''],
   });
 
-  get activityGroups(): () => ActivityGroup[] {
-    return () => {
-      const groups = new Map<string, Activity[]>();
-      for (const activity of this.activities()) {
-        const date = activity.created_at.split('T')[0];
-        if (!groups.has(date)) groups.set(date, []);
-        groups.get(date)!.push(activity);
-      }
-      return Array.from(groups.entries())
-        .sort((a, b) => b[0].localeCompare(a[0]))
-        .map(([date, acts]) => ({ date, activities: acts }));
-    };
-  }
+  readonly activityGroups = () => {
+    const groups = new Map<string, Activity[]>();
+    for (const activity of this.activities()) {
+      const date = activity.created_at.split('T')[0];
+      if (!groups.has(date)) groups.set(date, []);
+      groups.get(date)!.push(activity);
+    }
+    return Array.from(groups.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([date, acts]) => ({ date, activities: acts } as ActivityGroup));
+  };
 
   ngOnInit(): void {
     this.loadActivities();
@@ -263,28 +257,40 @@ export class ActivitiesComponent implements OnInit {
     this.loading.set(true);
     this.currentPage = 1;
     const type = this.typeFilter() || undefined;
-    this.activityService.list({ type, page: 1, page_size: this.pageSize }).subscribe({
-      next: (res) => {
-        this.activities.set(res.items);
-        this.hasMore.set(res.page < res.pages);
-        this.loading.set(false);
-      },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudieron cargar las actividades'); },
-    });
+    this.activityService
+      .list({ type, page: 1, page_size: this.pageSize })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.activities.set(res.items);
+          this.hasMore.set(res.page < res.pages);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar actividades');
+        },
+      });
   }
 
   loadMore(): void {
     this.loadingMore.set(true);
     this.currentPage++;
     const type = this.typeFilter() || undefined;
-    this.activityService.list({ type, page: this.currentPage, page_size: this.pageSize }).subscribe({
-      next: (res) => {
-        this.activities.update((prev) => [...prev, ...res.items]);
-        this.hasMore.set(res.page < res.pages);
-        this.loadingMore.set(false);
-      },
-      error: () => this.loadingMore.set(false),
-    });
+    this.activityService
+      .list({ type, page: this.currentPage, page_size: this.pageSize })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.activities.update((prev) => [...prev, ...res.items]);
+          this.hasMore.set(res.page < res.pages);
+          this.loadingMore.set(false);
+        },
+        error: (err: unknown) => {
+          this.loadingMore.set(false);
+          this.errorHandler.handle(err, 'Error al cargar más actividades');
+        },
+      });
   }
 
   setTypeFilter(type: ActivityType | ''): void {
@@ -298,30 +304,45 @@ export class ActivitiesComponent implements OnInit {
   }
 
   createActivity(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.creating.set(true);
     const value = this.form.getRawValue();
-    this.activityService.create({
-      type: value.type as ActivityType,
-      subject: value.subject!,
-      body: value.body || null,
-      scheduled_at: value.scheduled_at || null,
-    }).subscribe({
-      next: () => {
-        this.showCreateModal.set(false);
-        this.creating.set(false);
-        this.toast.success('Actividad creada');
-        this.loadActivities();
-      },
-      error: () => { this.creating.set(false); this.toast.error('Error', 'No se pudo crear la actividad'); },
-    });
+    this.activityService
+      .create({
+        type: value.type as ActivityType,
+        subject: value.subject!,
+        body: value.body || null,
+        scheduled_at: value.scheduled_at || null,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showCreateModal.set(false);
+          this.creating.set(false);
+          this.toast.success('Actividad creada');
+          this.loadActivities();
+        },
+        error: (err: unknown) => {
+          this.creating.set(false);
+          this.errorHandler.handle(err, 'Error al crear la actividad');
+        },
+      });
   }
 
   completeActivity(id: string): void {
-    this.activityService.complete(id).subscribe({
-      next: () => { this.toast.success('Actividad completada'); this.loadActivities(); },
-      error: () => this.toast.error('Error', 'No se pudo completar la actividad'),
-    });
+    this.activityService
+      .complete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success('Actividad completada');
+          this.loadActivities();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al completar la actividad'),
+      });
   }
 
   confirmDelete(activity: Activity): void {
@@ -332,12 +353,24 @@ export class ActivitiesComponent implements OnInit {
   deleteActivity(): void {
     const target = this.deleteTarget();
     if (!target) return;
-    this.activityService.remove(target.id).subscribe({
-      next: () => { this.showDeleteDialog.set(false); this.toast.success('Actividad eliminada'); this.loadActivities(); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar la actividad'),
-    });
+    this.activityService
+      .remove(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog.set(false);
+          this.toast.success('Actividad eliminada');
+          this.loadActivities();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la actividad'),
+      });
   }
 
-  typeLabel(type: ActivityType): string { return TYPE_LABELS[type]; }
-  typeVariant(type: ActivityType): BadgeVariant { return TYPE_VARIANT[type]; }
+  typeLabel(type: ActivityType): string {
+    return ACTIVITY_TYPE_LABELS[type] ?? type;
+  }
+
+  typeVariant(type: ActivityType): BadgeVariant {
+    return TYPE_VARIANT[type];
+  }
 }

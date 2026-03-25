@@ -1,13 +1,15 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Deal } from '../../../core/models/deal.model';
+import { DEAL_STATUS_LABELS } from '../../../core/labels';
+import { Deal, DealStatus } from '../../../core/models/deal.model';
 import { DealService } from '../../../core/services/deal.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { BadgeVariant } from '../../../shared/components/badge/badge.component';
 
 const STATUS_VARIANT: Record<string, BadgeVariant> = {
   open: 'info',
@@ -35,7 +37,7 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
             <div>
               <div class="flex items-center gap-3">
                 <h1 class="text-2xl font-bold text-surface-100">{{ deal()!.title }}</h1>
-                <app-badge [label]="deal()!.status" [variant]="statusVariant(deal()!.status)" />
+                <app-badge [label]="statusLabel(deal()!.status)" [variant]="statusVariant(deal()!.status)" />
               </div>
               <p class="text-sm text-surface-400 mt-1">Etapa: {{ deal()!.stage?.name ?? '—' }}</p>
             </div>
@@ -135,6 +137,8 @@ export class DealDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly deal = signal<Deal | null>(null);
   readonly loading = signal(true);
@@ -142,10 +146,24 @@ export class DealDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.dealService.getById(id).subscribe({
-      next: (d) => { this.deal.set(d); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar el deal'); this.goBack(); },
-    });
+    this.dealService
+      .getById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (d) => {
+          this.deal.set(d);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar el deal');
+          this.goBack();
+        },
+      });
+  }
+
+  statusLabel(status: DealStatus): string {
+    return DEAL_STATUS_LABELS[status] ?? status;
   }
 
   statusVariant(status: string): BadgeVariant {
@@ -155,11 +173,19 @@ export class DealDetailComponent implements OnInit {
   deleteDeal(): void {
     const d = this.deal();
     if (!d) return;
-    this.dealService.remove(d.id).subscribe({
-      next: () => { this.toast.success('Deal eliminado'); this.router.navigate(['/deals']); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar el deal'),
-    });
+    this.dealService
+      .remove(d.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success('Deal eliminado');
+          this.router.navigate(['/deals']);
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar el deal'),
+      });
   }
 
-  goBack(): void { this.router.navigate(['/deals']); }
+  goBack(): void {
+    this.router.navigate(['/deals']);
+  }
 }

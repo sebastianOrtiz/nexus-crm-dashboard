@@ -1,24 +1,19 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
+import { DEFAULT_PAGE_SIZE } from '../../../core/constants';
+import { SOURCE_LABELS } from '../../../core/labels';
 import { Contact, ContactSource } from '../../../core/models/contact.model';
 import { ContactService } from '../../../core/services/contact.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-
-const SOURCE_LABELS: Record<ContactSource, string> = {
-  manual: 'Manual',
-  import: 'Importado',
-  website: 'Web',
-  referral: 'Referido',
-  social: 'Social',
-  other: 'Otro',
-};
 
 /** Contacts list page */
 @Component({
@@ -174,6 +169,8 @@ export class ContactsListComponent implements OnInit {
   private readonly contactService = inject(ContactService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly searchSubject = new Subject<string>();
 
   readonly contacts = signal<Contact[]>([]);
@@ -187,17 +184,17 @@ export class ContactsListComponent implements OnInit {
   sourceFilter = '';
 
   readonly sources: ContactSource[] = ['manual', 'import', 'website', 'referral', 'social', 'other'];
-  readonly pageSize = 20;
+  readonly pageSize = DEFAULT_PAGE_SIZE;
 
-  get totalPages(): () => number {
-    return () => Math.ceil(this.total() / this.pageSize);
-  }
+  readonly totalPages = () => Math.ceil(this.total() / this.pageSize);
 
   ngOnInit(): void {
-    this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
-      this.currentPage.set(1);
-      this.loadContacts();
-    });
+    this.searchSubject
+      .pipe(debounceTime(400), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(1);
+        this.loadContacts();
+      });
     this.loadContacts();
   }
 
@@ -210,15 +207,16 @@ export class ContactsListComponent implements OnInit {
         page: this.currentPage(),
         page_size: this.pageSize,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.contacts.set(res.items);
           this.total.set(res.total);
           this.loading.set(false);
         },
-        error: () => {
+        error: (err: unknown) => {
           this.loading.set(false);
-          this.toast.error('Error', 'No se pudieron cargar los contactos');
+          this.errorHandler.handle(err, 'Error al cargar contactos');
         },
       });
   }
@@ -254,16 +252,19 @@ export class ContactsListComponent implements OnInit {
     const target = this.deleteTarget();
     if (!target) return;
 
-    this.contactService.remove(target.id).subscribe({
-      next: () => {
-        this.showDeleteDialog.set(false);
-        this.toast.success('Contacto eliminado');
-        this.loadContacts();
-      },
-      error: () => {
-        this.toast.error('Error', 'No se pudo eliminar el contacto');
-      },
-    });
+    this.contactService
+      .remove(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog.set(false);
+          this.toast.success('Contacto eliminado');
+          this.loadContacts();
+        },
+        error: (err: unknown) => {
+          this.errorHandler.handle(err, 'Error al eliminar contacto');
+        },
+      });
   }
 
   initials(contact: Contact): string {

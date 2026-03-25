@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Organization } from '../../../core/models/organization.model';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -53,6 +55,8 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 export class SettingsOrganizationComponent implements OnInit {
   private readonly orgService = inject(OrganizationService);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly org = signal<Organization | null>(null);
@@ -64,18 +68,36 @@ export class SettingsOrganizationComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.orgService.getOrganization().subscribe({
-      next: (o) => { this.org.set(o); this.form.patchValue({ name: o.name }); this.loading.set(false); },
-      error: () => this.loading.set(false),
-    });
+    this.orgService
+      .getOrganization()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (o) => {
+          this.org.set(o);
+          this.form.patchValue({ name: o.name });
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   save(): void {
     if (this.form.invalid) return;
     this.saving.set(true);
-    this.orgService.updateOrganization({ name: this.form.getRawValue().name! }).subscribe({
-      next: (o) => { this.org.set(o); this.saving.set(false); this.form.markAsPristine(); this.toast.success('Organización actualizada'); },
-      error: () => { this.saving.set(false); this.toast.error('Error', 'No se pudo actualizar'); },
-    });
+    this.orgService
+      .updateOrganization({ name: this.form.getRawValue().name! })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (o) => {
+          this.org.set(o);
+          this.saving.set(false);
+          this.form.markAsPristine();
+          this.toast.success('Organización actualizada');
+        },
+        error: (err: unknown) => {
+          this.saving.set(false);
+          this.errorHandler.handle(err, 'Error al actualizar la organización');
+        },
+      });
   }
 }

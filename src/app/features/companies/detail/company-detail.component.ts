@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Company } from '../../../core/models/company.model';
 import { CompanyService } from '../../../core/services/company.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -110,6 +112,8 @@ export class CompanyDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly company = signal<Company | null>(null);
   readonly loading = signal(true);
@@ -117,20 +121,38 @@ export class CompanyDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.companyService.getById(id).subscribe({
-      next: (c) => { this.company.set(c); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar la empresa'); this.goBack(); },
-    });
+    this.companyService
+      .getById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (c) => {
+          this.company.set(c);
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar la empresa');
+          this.goBack();
+        },
+      });
   }
 
   deleteCompany(): void {
     const c = this.company();
     if (!c) return;
-    this.companyService.remove(c.id).subscribe({
-      next: () => { this.toast.success('Empresa eliminada'); this.router.navigate(['/companies']); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar la empresa'),
-    });
+    this.companyService
+      .remove(c.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success('Empresa eliminada');
+          this.router.navigate(['/companies']);
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la empresa'),
+      });
   }
 
-  goBack(): void { this.router.navigate(['/companies']); }
+  goBack(): void {
+    this.router.navigate(['/companies']);
+  }
 }

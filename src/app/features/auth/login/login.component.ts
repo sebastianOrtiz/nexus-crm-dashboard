@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -97,6 +98,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
 
@@ -130,15 +132,18 @@ export class LoginComponent {
     this.loading.set(true);
     const { email, password } = this.form.getRawValue();
 
-    this.authService.login({ email: email!, password: password! }).subscribe({
-      next: () => {
-        this.toast.success('Bienvenido', 'Has iniciado sesión correctamente');
-        this.router.navigate(['/dashboard']);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.toast.error('Error al iniciar sesión', 'Verifica tus credenciales e intenta de nuevo');
-      },
-    });
+    this.authService
+      .login({ email: email!, password: password! })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success('Bienvenido', 'Has iniciado sesión correctamente');
+          this.router.navigate(['/dashboard']);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.toast.error('Error al iniciar sesión', 'Verifica tus credenciales e intenta de nuevo');
+        },
+      });
   }
 }

@@ -1,7 +1,9 @@
 import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PipelineStage } from '../../core/models/pipeline.model';
+import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { PipelineService } from '../../core/services/pipeline.service';
 import { ToastService } from '../../core/services/toast.service';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
@@ -171,6 +173,8 @@ const STAGE_COLORS = [
 export class PipelineComponent implements OnInit {
   private readonly pipelineService = inject(PipelineService);
   private readonly toast = inject(ToastService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly stages = signal<PipelineStage[]>([]);
@@ -196,10 +200,19 @@ export class PipelineComponent implements OnInit {
 
   loadStages(): void {
     this.loading.set(true);
-    this.pipelineService.list().subscribe({
-      next: (stages) => { this.stages.set(stages.sort((a, b) => a.order - b.order)); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toast.error('Error', 'No se pudo cargar el pipeline'); },
-    });
+    this.pipelineService
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stages) => {
+          this.stages.set(stages.sort((a, b) => a.order - b.order));
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          this.errorHandler.handle(err, 'Error al cargar el pipeline');
+        },
+      });
   }
 
   openCreateModal(): void {
@@ -232,9 +245,17 @@ export class PipelineComponent implements OnInit {
       ? this.pipelineService.update(target.id, payload)
       : this.pipelineService.create(payload);
 
-    req.subscribe({
-      next: () => { this.showModal.set(false); this.saving.set(false); this.toast.success(target ? 'Etapa actualizada' : 'Etapa creada'); this.loadStages(); },
-      error: () => { this.saving.set(false); this.toast.error('Error', 'No se pudo guardar la etapa'); },
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.showModal.set(false);
+        this.saving.set(false);
+        this.toast.success(target ? 'Etapa actualizada' : 'Etapa creada');
+        this.loadStages();
+      },
+      error: (err: unknown) => {
+        this.saving.set(false);
+        this.errorHandler.handle(err, 'Error al guardar la etapa');
+      },
     });
   }
 
@@ -243,9 +264,15 @@ export class PipelineComponent implements OnInit {
     moveItemInArray(stages, event.previousIndex, event.currentIndex);
     this.stages.set(stages);
 
-    this.pipelineService.reorder({ stage_ids: stages.map((s) => s.id) }).subscribe({
-      error: () => { this.toast.error('Error', 'No se pudo reordenar las etapas'); this.loadStages(); },
-    });
+    this.pipelineService
+      .reorder({ stage_ids: stages.map((s) => s.id) })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: (err: unknown) => {
+          this.errorHandler.handle(err, 'Error al reordenar las etapas');
+          this.loadStages();
+        },
+      });
   }
 
   confirmDelete(stage: PipelineStage): void {
@@ -256,9 +283,16 @@ export class PipelineComponent implements OnInit {
   deleteStage(): void {
     const target = this.deleteTarget();
     if (!target) return;
-    this.pipelineService.remove(target.id).subscribe({
-      next: () => { this.showDeleteDialog.set(false); this.toast.success('Etapa eliminada'); this.loadStages(); },
-      error: () => this.toast.error('Error', 'No se pudo eliminar la etapa'),
-    });
+    this.pipelineService
+      .remove(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog.set(false);
+          this.toast.success('Etapa eliminada');
+          this.loadStages();
+        },
+        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la etapa'),
+      });
   }
 }
