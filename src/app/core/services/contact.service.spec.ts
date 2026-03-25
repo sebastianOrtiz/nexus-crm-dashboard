@@ -7,7 +7,7 @@ import { PaginatedResponse } from '../models/api.model';
 import { environment } from '../../../environments/environment';
 import { API_VERSION } from '../constants';
 
-const BASE = `${environment.apiUrl}${API_VERSION}/contacts`;
+const BASE = `${environment.nexusCrmApiUrl}${API_VERSION}/contacts`;
 
 const mockContact: Contact = {
   id: 'contact-1',

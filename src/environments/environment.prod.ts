@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.sebasing.dev',
+  nexusCrmApiUrl: 'https://nexus-crm-api.sebasing.dev',
+  eventServiceApiUrl: 'https://nexus-crm-events-api.sebasing.dev',
+  semanticSearchApiUrl: 'https://nexus-crm-semantic-search-api.sebasing.dev',
 };

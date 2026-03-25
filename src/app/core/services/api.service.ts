@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   protected readonly http = inject(HttpClient);
-  protected readonly baseUrl = environment.apiUrl;
+  protected readonly baseUrl = environment.nexusCrmApiUrl;
 
   protected buildParams(params: Record<string, unknown>): HttpParams {
     let httpParams = new HttpParams();

@@ -1,4 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000',
+  nexusCrmApiUrl: 'http://localhost:8000',
+  eventServiceApiUrl: 'http://localhost:8081',
+  semanticSearchApiUrl: 'http://localhost:8082',
 };

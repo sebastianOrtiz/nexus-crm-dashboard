@@ -39,7 +39,7 @@ export class AuthService {
     form.set('password', payload.password);
 
     return this.http
-      .post<AuthTokens>(`${environment.apiUrl}/api/v1/auth/token`, form.toString(), {
+      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/token`, form.toString(), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
       .pipe(tap((tokens) => this.handleTokens(tokens)));
@@ -47,14 +47,14 @@ export class AuthService {
 
   register(payload: RegisterRequest): Observable<AuthTokens> {
     return this.http
-      .post<AuthTokens>(`${environment.apiUrl}/api/v1/auth/register`, payload)
+      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/register`, payload)
       .pipe(tap((tokens) => this.handleTokens(tokens)));
   }
 
   refresh(): Observable<AuthTokens> {
     const refreshToken = this.storage.getRefreshToken();
     return this.http
-      .post<AuthTokens>(`${environment.apiUrl}/api/v1/auth/refresh`, { refresh_token: refreshToken })
+      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/refresh`, { refresh_token: refreshToken })
       .pipe(tap((tokens) => this.handleTokens(tokens)));
   }
 
