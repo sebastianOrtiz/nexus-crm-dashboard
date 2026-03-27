@@ -1,5 +1,11 @@
 import { ActivityType, ContactSource, UserRole } from './enums';
 
+/**
+ * Static label maps used as fallbacks.
+ * Components should prefer TranslateService.t() for translated labels.
+ * These remain for backward compatibility with any code that still references them.
+ */
+
 /** Human-readable labels for user roles */
 export const ROLE_LABELS: Record<string, string> = {
   [UserRole.OWNER]: 'Propietario',

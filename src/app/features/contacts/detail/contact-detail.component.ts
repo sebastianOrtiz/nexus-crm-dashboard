@@ -6,15 +6,24 @@ import { Contact } from '../../../core/models/contact.model';
 import { ContactService } from '../../../core/services/contact.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /** Contact detail view */
 @Component({
   selector: 'app-contact-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink, BadgeComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [
+    DatePipe,
+    RouterLink,
+    BadgeComponent,
+    ConfirmDialogComponent,
+    LoadingSpinnerComponent,
+    TranslatePipe,
+  ],
   template: `
     <div class="max-w-4xl mx-auto space-y-6">
       @if (loading()) {
@@ -27,66 +36,101 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           <div class="flex items-center gap-4">
             <button class="btn-ghost p-2" (click)="goBack()">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <div class="flex items-center gap-4">
-              <div class="h-12 w-12 rounded-full bg-primary-600/30 flex items-center justify-center text-lg font-bold text-primary-300">
+              <div
+                class="h-12 w-12 rounded-full bg-primary-600/30 flex items-center justify-center text-lg font-bold text-primary-300"
+              >
                 {{ initials() }}
               </div>
               <div>
                 <h1 class="text-2xl font-bold text-surface-100">
                   {{ contact()!.first_name }} {{ contact()!.last_name }}
                 </h1>
-                <p class="text-sm text-surface-400">{{ contact()!.email ?? 'Sin email' }}</p>
+                <p class="text-sm text-surface-400">
+                  {{ contact()!.email ?? ('contacts.no_email' | translate) }}
+                </p>
               </div>
             </div>
           </div>
           <div class="flex gap-2">
             <a [routerLink]="['/contacts', contact()!.id, 'edit']" class="btn-secondary">
-              Editar
+              {{ 'common.edit' | translate }}
             </a>
-            <button class="btn-danger" (click)="showDeleteDialog.set(true)">Eliminar</button>
+            <button class="btn-danger" (click)="showDeleteDialog.set(true)">
+              {{ 'common.delete' | translate }}
+            </button>
           </div>
         </div>
 
         <!-- Info card -->
         <div class="card">
-          <h2 class="text-base font-semibold text-surface-100 mb-4">Información</h2>
+          <h2 class="text-base font-semibold text-surface-100 mb-4">
+            {{ 'contacts.detail.info' | translate }}
+          </h2>
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Teléfono</dt>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.phone' | translate }}
+              </dt>
               <dd class="text-sm text-surface-200">{{ contact()!.phone ?? '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Empresa</dt>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.company' | translate }}
+              </dt>
               <dd class="text-sm text-surface-200">{{ contact()!.company_name ?? '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Fuente</dt>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.source' | translate }}
+              </dt>
               <dd class="text-sm text-surface-200">
                 <app-badge [label]="contact()!.source" variant="info" />
               </dd>
             </div>
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Asignado a</dt>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.assigned' | translate }}
+              </dt>
               <dd class="text-sm text-surface-200">
-                {{ contact()!.assigned_to ? contact()!.assigned_to!.first_name + ' ' + contact()!.assigned_to!.last_name : '—' }}
+                {{
+                  contact()!.assigned_to
+                    ? contact()!.assigned_to!.first_name + ' ' + contact()!.assigned_to!.last_name
+                    : '—'
+                }}
               </dd>
             </div>
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Creado</dt>
-              <dd class="text-sm text-surface-200">{{ contact()!.created_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.created' | translate }}
+              </dt>
+              <dd class="text-sm text-surface-200">
+                {{ contact()!.created_at | date: 'dd/MM/yyyy HH:mm' }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">Actualizado</dt>
-              <dd class="text-sm text-surface-200">{{ contact()!.updated_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
+                {{ 'contacts.detail.updated' | translate }}
+              </dt>
+              <dd class="text-sm text-surface-200">
+                {{ contact()!.updated_at | date: 'dd/MM/yyyy HH:mm' }}
+              </dd>
             </div>
           </dl>
 
           @if (contact()!.notes) {
             <div class="mt-4 pt-4 border-t border-surface-700">
-              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-2">Notas</dt>
+              <dt class="text-xs text-surface-500 uppercase tracking-wider mb-2">
+                {{ 'contacts.detail.notes' | translate }}
+              </dt>
               <dd class="text-sm text-surface-300 whitespace-pre-line">{{ contact()!.notes }}</dd>
             </div>
           }
@@ -96,8 +140,8 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 
     <app-confirm-dialog
       [isOpen]="showDeleteDialog()"
-      title="Eliminar contacto"
-      message="¿Estás seguro de que deseas eliminar este contacto? Esta acción no se puede deshacer."
+      [title]="'contacts.delete_title' | translate"
+      [message]="'contacts.detail.delete_msg' | translate"
       (confirm)="deleteContact()"
       (cancel)="showDeleteDialog.set(false)"
     />
@@ -110,6 +154,7 @@ export class ContactDetailComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly translate = inject(TranslateService);
 
   readonly contact = signal<Contact | null>(null);
   readonly loading = signal(true);
@@ -127,7 +172,7 @@ export class ContactDetailComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar el contacto');
+          this.errorHandler.handle(err, this.translate.t('error.load_contact'));
           this.goBack();
         },
       });
@@ -147,10 +192,11 @@ export class ContactDetailComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toast.success('Contacto eliminado');
+          this.toast.success(this.translate.t('contacts.deleted'));
           this.router.navigate(['/contacts']);
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar el contacto'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.delete_contact')),
       });
   }
 

@@ -2,34 +2,45 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SOURCE_LABELS } from '../../../core/labels';
 import { ContactSource } from '../../../core/models/contact.model';
 import { ContactService } from '../../../core/services/contact.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
-const SOURCES: { value: ContactSource; label: string }[] = (
-  Object.keys(SOURCE_LABELS) as ContactSource[]
-).map((value) => ({ value, label: SOURCE_LABELS[value] }));
+const SOURCE_VALUES: ContactSource[] = [
+  'manual',
+  'import',
+  'website',
+  'referral',
+  'social',
+  'other',
+];
 
 /** Contact create/edit form */
 @Component({
   selector: 'app-contact-form',
   standalone: true,
-  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent, TranslatePipe],
   template: `
     <div class="max-w-2xl mx-auto space-y-6">
       <!-- Header -->
       <div class="flex items-center gap-4">
         <button class="btn-ghost p-2" (click)="goBack()">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <h1 class="text-2xl font-bold text-surface-100">
-          {{ isEdit() ? 'Editar contacto' : 'Nuevo contacto' }}
+          {{ (isEdit() ? 'contacts.edit' : 'contacts.new') | translate }}
         </h1>
       </div>
 
@@ -41,42 +52,90 @@ const SOURCES: { value: ContactSource; label: string }[] = (
         <div class="card">
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <app-form-field label="Nombre" fieldId="first_name" [required]="true" [error]="fieldError('first_name')">
-                <input id="first_name" type="text" class="input" formControlName="first_name" placeholder="Juan" />
+              <app-form-field
+                [label]="'contacts.form.first_name' | translate"
+                fieldId="first_name"
+                [required]="true"
+                [error]="fieldError('first_name')"
+              >
+                <input
+                  id="first_name"
+                  type="text"
+                  class="input"
+                  formControlName="first_name"
+                  placeholder="Juan"
+                />
               </app-form-field>
-              <app-form-field label="Apellido" fieldId="last_name" [required]="true" [error]="fieldError('last_name')">
-                <input id="last_name" type="text" class="input" formControlName="last_name" placeholder="Pérez" />
+              <app-form-field
+                [label]="'contacts.form.last_name' | translate"
+                fieldId="last_name"
+                [required]="true"
+                [error]="fieldError('last_name')"
+              >
+                <input
+                  id="last_name"
+                  type="text"
+                  class="input"
+                  formControlName="last_name"
+                  placeholder="Pérez"
+                />
               </app-form-field>
             </div>
 
-            <app-form-field label="Email" fieldId="email" [error]="fieldError('email')">
-              <input id="email" type="email" class="input" formControlName="email" placeholder="juan@ejemplo.com" />
+            <app-form-field
+              [label]="'contacts.form.email' | translate"
+              fieldId="email"
+              [error]="fieldError('email')"
+            >
+              <input
+                id="email"
+                type="email"
+                class="input"
+                formControlName="email"
+                placeholder="juan@ejemplo.com"
+              />
             </app-form-field>
 
-            <app-form-field label="Teléfono" fieldId="phone">
-              <input id="phone" type="tel" class="input" formControlName="phone" placeholder="+54 11 1234-5678" />
+            <app-form-field [label]="'contacts.form.phone' | translate" fieldId="phone">
+              <input
+                id="phone"
+                type="tel"
+                class="input"
+                formControlName="phone"
+                placeholder="+54 11 1234-5678"
+              />
             </app-form-field>
 
-            <app-form-field label="Fuente" fieldId="source" [required]="true">
+            <app-form-field
+              [label]="'contacts.form.source' | translate"
+              fieldId="source"
+              [required]="true"
+            >
               <select id="source" class="input" formControlName="source">
-                @for (src of sources; track src.value) {
-                  <option [value]="src.value">{{ src.label }}</option>
+                @for (src of sources; track src) {
+                  <option [value]="src">{{ translate.t('source.' + src) }}</option>
                 }
               </select>
             </app-form-field>
 
-            <app-form-field label="Notas" fieldId="notes">
-              <textarea id="notes" class="input h-24 resize-none" formControlName="notes"
-                placeholder="Información adicional..."></textarea>
+            <app-form-field [label]="'contacts.form.notes' | translate" fieldId="notes">
+              <textarea
+                id="notes"
+                class="input h-24 resize-none"
+                formControlName="notes"
+                placeholder="Información adicional..."
+              ></textarea>
             </app-form-field>
 
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" class="btn-secondary" (click)="goBack()">Cancelar</button>
+              <button type="button" class="btn-secondary" (click)="goBack()">
+                {{ 'common.cancel' | translate }}
+              </button>
               <button type="submit" class="btn-primary" [disabled]="saving() || form.invalid">
                 @if (saving()) {
                   <app-loading-spinner size="sm" />
                 }
-                {{ isEdit() ? 'Guardar cambios' : 'Crear contacto' }}
+                {{ (isEdit() ? 'common.save' : 'contacts.form.create') | translate }}
               </button>
             </div>
           </form>
@@ -93,12 +152,13 @@ export class ContactFormComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly translate = inject(TranslateService);
 
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
   readonly saving = signal(false);
 
-  readonly sources = SOURCES;
+  readonly sources = SOURCE_VALUES;
 
   private contactId: string | null = null;
 
@@ -138,7 +198,7 @@ export class ContactFormComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.pageLoading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar el contacto');
+          this.errorHandler.handle(err, this.translate.t('error.load_contact'));
           this.goBack();
         },
       });
@@ -147,9 +207,9 @@ export class ContactFormComponent implements OnInit {
   fieldError(field: string): string {
     const ctrl = this.form.get(field);
     if (!ctrl?.touched || ctrl.valid) return '';
-    if (ctrl.hasError('required')) return 'Este campo es requerido';
-    if (ctrl.hasError('email')) return 'Email inválido';
-    return 'Campo inválido';
+    if (ctrl.hasError('required')) return this.translate.t('validation.required');
+    if (ctrl.hasError('email')) return this.translate.t('validation.email_invalid_short');
+    return this.translate.t('validation.invalid_field');
   }
 
   submit(): void {
@@ -175,12 +235,16 @@ export class ContactFormComponent implements OnInit {
 
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (contact) => {
-        this.toast.success(this.isEdit() ? 'Contacto actualizado' : 'Contacto creado');
+        this.toast.success(
+          this.isEdit()
+            ? this.translate.t('contacts.updated')
+            : this.translate.t('contacts.created'),
+        );
         this.router.navigate(['/contacts', contact.id]);
       },
       error: (err: unknown) => {
         this.saving.set(false);
-        this.errorHandler.handle(err, 'Error al guardar el contacto');
+        this.errorHandler.handle(err, this.translate.t('error.save_contact'));
       },
     });
   }

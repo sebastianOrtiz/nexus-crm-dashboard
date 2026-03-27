@@ -7,24 +7,31 @@ import { DealService } from '../../../core/services/deal.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { PipelineService } from '../../../core/services/pipeline.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /** Deal create/edit form */
 @Component({
   selector: 'app-deal-form',
   standalone: true,
-  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent, TranslatePipe],
   template: `
     <div class="max-w-2xl mx-auto space-y-6">
       <div class="flex items-center gap-4">
         <button class="btn-ghost p-2" (click)="goBack()">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <h1 class="text-2xl font-bold text-surface-100">
-          {{ isEdit() ? 'Editar deal' : 'Nuevo deal' }}
+          {{ (isEdit() ? 'deals.edit' : 'deals.new') | translate }}
         </h1>
       </div>
 
@@ -33,15 +40,33 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       } @else {
         <div class="card">
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
-            <app-form-field label="Título" fieldId="title" [required]="true" [error]="fieldError('title')">
-              <input id="title" type="text" class="input" formControlName="title" placeholder="Nombre del deal" />
+            <app-form-field
+              [label]="'deals.form.title' | translate"
+              fieldId="title"
+              [required]="true"
+              [error]="fieldError('title')"
+            >
+              <input
+                id="title"
+                type="text"
+                class="input"
+                formControlName="title"
+                placeholder="Nombre del deal"
+              />
             </app-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <app-form-field label="Valor" fieldId="value">
-                <input id="value" type="number" class="input" formControlName="value" placeholder="0.00" min="0" />
+              <app-form-field [label]="'deals.form.value' | translate" fieldId="value">
+                <input
+                  id="value"
+                  type="number"
+                  class="input"
+                  formControlName="value"
+                  placeholder="0.00"
+                  min="0"
+                />
               </app-form-field>
-              <app-form-field label="Moneda" fieldId="currency">
+              <app-form-field [label]="'deals.form.currency' | translate" fieldId="currency">
                 <select id="currency" class="input" formControlName="currency">
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -51,29 +76,50 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
               </app-form-field>
             </div>
 
-            <app-form-field label="Etapa" fieldId="stage_id" [required]="true" [error]="fieldError('stage_id')">
+            <app-form-field
+              [label]="'deals.form.stage' | translate"
+              fieldId="stage_id"
+              [required]="true"
+              [error]="fieldError('stage_id')"
+            >
               <select id="stage_id" class="input" formControlName="stage_id">
-                <option value="">Seleccionar etapa...</option>
+                <option value="">{{ 'deals.form.select_stage' | translate }}</option>
                 @for (stage of stages(); track stage.id) {
                   <option [value]="stage.id">{{ stage.name }}</option>
                 }
               </select>
             </app-form-field>
 
-            <app-form-field label="Fecha de cierre estimada" fieldId="expected_close_date">
-              <input id="expected_close_date" type="date" class="input" formControlName="expected_close_date" />
+            <app-form-field
+              [label]="'deals.form.close_date' | translate"
+              fieldId="expected_close_date"
+            >
+              <input
+                id="expected_close_date"
+                type="date"
+                class="input"
+                formControlName="expected_close_date"
+              />
             </app-form-field>
 
-            <app-form-field label="Notas" fieldId="notes">
-              <textarea id="notes" class="input h-24 resize-none" formControlName="notes"
-                placeholder="Detalles del deal..."></textarea>
+            <app-form-field [label]="'deals.form.notes' | translate" fieldId="notes">
+              <textarea
+                id="notes"
+                class="input h-24 resize-none"
+                formControlName="notes"
+                placeholder="Detalles del deal..."
+              ></textarea>
             </app-form-field>
 
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" class="btn-secondary" (click)="goBack()">Cancelar</button>
+              <button type="button" class="btn-secondary" (click)="goBack()">
+                {{ 'common.cancel' | translate }}
+              </button>
               <button type="submit" class="btn-primary" [disabled]="saving() || form.invalid">
-                @if (saving()) { <app-loading-spinner size="sm" /> }
-                {{ isEdit() ? 'Guardar cambios' : 'Crear deal' }}
+                @if (saving()) {
+                  <app-loading-spinner size="sm" />
+                }
+                {{ (isEdit() ? 'common.save' : 'deals.form.create') | translate }}
               </button>
             </div>
           </form>
@@ -91,6 +137,7 @@ export class DealFormComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
@@ -146,7 +193,7 @@ export class DealFormComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.pageLoading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar el deal');
+          this.errorHandler.handle(err, this.translate.t('error.load_deal'));
           this.goBack();
         },
       });
@@ -155,8 +202,8 @@ export class DealFormComponent implements OnInit {
   fieldError(field: string): string {
     const ctrl = this.form.get(field);
     if (!ctrl?.touched || ctrl.valid) return '';
-    if (ctrl.hasError('required')) return 'Este campo es requerido';
-    return 'Campo inválido';
+    if (ctrl.hasError('required')) return this.translate.t('validation.required');
+    return this.translate.t('validation.invalid_field');
   }
 
   submit(): void {
@@ -181,12 +228,14 @@ export class DealFormComponent implements OnInit {
 
     req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (deal) => {
-        this.toast.success(this.isEdit() ? 'Deal actualizado' : 'Deal creado');
+        this.toast.success(
+          this.isEdit() ? this.translate.t('deals.updated') : this.translate.t('deals.created'),
+        );
         this.router.navigate(['/deals', deal.id]);
       },
       error: (err: unknown) => {
         this.saving.set(false);
-        this.errorHandler.handle(err, 'Error al guardar el deal');
+        this.errorHandler.handle(err, this.translate.t('error.save_deal'));
       },
     });
   }

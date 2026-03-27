@@ -3,8 +3,7 @@ import { Routes } from '@angular/router';
 export const DEALS_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./list/deals-list.component').then((m) => m.DealsListComponent),
+    loadComponent: () => import('./list/deals-list.component').then((m) => m.DealsListComponent),
   },
   {
     path: 'kanban',
@@ -13,8 +12,7 @@ export const DEALS_ROUTES: Routes = [
   },
   {
     path: 'new',
-    loadComponent: () =>
-      import('./form/deal-form.component').then((m) => m.DealFormComponent),
+    loadComponent: () => import('./form/deal-form.component').then((m) => m.DealFormComponent),
   },
   {
     path: ':id',
@@ -23,7 +21,6 @@ export const DEALS_ROUTES: Routes = [
   },
   {
     path: ':id/edit',
-    loadComponent: () =>
-      import('./form/deal-form.component').then((m) => m.DealFormComponent),
+    loadComponent: () => import('./form/deal-form.component').then((m) => m.DealFormComponent),
   },
 ];

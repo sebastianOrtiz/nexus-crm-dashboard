@@ -1,9 +1,11 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 /** Generic modal/dialog wrapper component */
 @Component({
   selector: 'app-modal',
   standalone: true,
+  imports: [TranslatePipe],
   template: `
     @if (isOpen()) {
       <div
@@ -23,7 +25,11 @@ import { Component, input, output } from '@angular/core';
           <!-- Header -->
           <div class="flex items-center justify-between px-6 py-4 border-b border-surface-700">
             <h2 class="text-lg font-semibold text-surface-100">{{ title() }}</h2>
-            <button class="btn-ghost p-1 -mr-1" (click)="close.emit()" aria-label="Cerrar">
+            <button
+              class="btn-ghost p-1 -mr-1"
+              (click)="close.emit()"
+              [attr.aria-label]="'common.close' | translate"
+            >
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"

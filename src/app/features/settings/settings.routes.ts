@@ -4,8 +4,7 @@ import { adminGuard } from '../../core/guards/admin.guard';
 export const SETTINGS_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./settings.component').then((m) => m.SettingsComponent),
+    loadComponent: () => import('./settings.component').then((m) => m.SettingsComponent),
     children: [
       { path: '', redirectTo: 'profile', pathMatch: 'full' },
       {

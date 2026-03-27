@@ -3,17 +3,18 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DEFAULT_PAGE_SIZE } from '../../core/constants';
-import { ACTIVITY_TYPE_LABELS } from '../../core/labels';
 import { Activity, ActivityType } from '../../core/models/activity.model';
 import { ActivityService } from '../../core/services/activity.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TranslateService } from '../../core/services/translate.service';
 import { BadgeComponent, BadgeVariant } from '../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 const TYPE_VARIANT: Record<ActivityType, BadgeVariant> = {
   call: 'info',
@@ -42,20 +43,26 @@ interface ActivityGroup {
     FormFieldComponent,
     LoadingSpinnerComponent,
     ModalComponent,
+    TranslatePipe,
   ],
   template: `
     <div class="space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-surface-100">Actividades</h1>
-          <p class="text-sm text-surface-400 mt-1">Timeline de interacciones</p>
+          <h1 class="text-2xl font-bold text-surface-100">{{ 'activities.title' | translate }}</h1>
+          <p class="text-sm text-surface-400 mt-1">{{ 'activities.subtitle' | translate }}</p>
         </div>
         <button class="btn-primary" (click)="openCreateModal()">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
-          Nueva actividad
+          {{ 'activities.new' | translate }}
         </button>
       </div>
 
@@ -63,15 +70,23 @@ interface ActivityGroup {
       <div class="flex gap-2 flex-wrap">
         <button
           class="btn-sm rounded-full"
-          [class]="typeFilter() === '' ? 'bg-primary-600 text-white' : 'bg-surface-700 text-surface-300 hover:bg-surface-600'"
+          [class]="
+            typeFilter() === ''
+              ? 'bg-primary-600 text-white'
+              : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
+          "
           (click)="setTypeFilter('')"
         >
-          Todas
+          {{ 'common.all' | translate }}
         </button>
         @for (type of activityTypes; track type) {
           <button
             class="btn-sm rounded-full"
-            [class]="typeFilter() === type ? 'bg-primary-600 text-white' : 'bg-surface-700 text-surface-300 hover:bg-surface-600'"
+            [class]="
+              typeFilter() === type
+                ? 'bg-primary-600 text-white'
+                : 'bg-surface-700 text-surface-300 hover:bg-surface-600'
+            "
             (click)="setTypeFilter(type)"
           >
             {{ typeLabel(type) }}
@@ -84,9 +99,9 @@ interface ActivityGroup {
         <div class="flex justify-center py-20"><app-loading-spinner size="lg" /></div>
       } @else if (activityGroups().length === 0) {
         <app-empty-state
-          title="Sin actividades"
-          description="Registra llamadas, emails, reuniones y notas"
-          actionLabel="Nueva actividad"
+          [title]="'activities.empty_title' | translate"
+          [description]="'activities.empty_desc' | translate"
+          [actionLabel]="'activities.new' | translate"
           (action)="openCreateModal()"
         />
       } @else {
@@ -104,7 +119,10 @@ interface ActivityGroup {
                   <div class="card flex items-start gap-4">
                     <!-- Type icon -->
                     <div class="shrink-0 mt-0.5">
-                      <app-badge [label]="typeLabel(activity.type)" [variant]="typeVariant(activity.type)" />
+                      <app-badge
+                        [label]="typeLabel(activity.type)"
+                        [variant]="typeVariant(activity.type)"
+                      />
                     </div>
 
                     <div class="flex-1 min-w-0">
@@ -116,34 +134,61 @@ interface ActivityGroup {
                       </div>
 
                       @if (activity.body) {
-                        <p class="text-sm text-surface-400 mt-1 whitespace-pre-line">{{ activity.body }}</p>
+                        <p class="text-sm text-surface-400 mt-1 whitespace-pre-line">
+                          {{ activity.body }}
+                        </p>
                       }
 
                       <div class="flex items-center gap-3 mt-2 text-xs text-surface-500">
                         @if (activity.contact) {
-                          <span>{{ activity.contact.first_name }} {{ activity.contact.last_name }}</span>
+                          <span
+                            >{{ activity.contact.first_name }}
+                            {{ activity.contact.last_name }}</span
+                          >
                         }
                         @if (activity.deal_title) {
                           <span>{{ activity.deal_title }}</span>
                         }
-                        <span>por {{ activity.created_by.first_name }} {{ activity.created_by.last_name }}</span>
+                        <span
+                          >{{ 'activities.by' | translate }} {{ activity.created_by.first_name }}
+                          {{ activity.created_by.last_name }}</span
+                        >
                       </div>
                     </div>
 
                     <div class="flex items-center gap-1 shrink-0">
                       @if (!activity.is_completed) {
-                        <button class="btn-ghost btn-sm p-1.5 text-green-400" title="Marcar completada"
-                          (click)="completeActivity(activity.id)">
-                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <button
+                          class="btn-ghost btn-sm p-1.5 text-green-400"
+                          [title]="'activities.mark_complete' | translate"
+                          (click)="completeActivity(activity.id)"
+                        >
+                          <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         </button>
                       }
-                      <button class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
-                        (click)="confirmDelete(activity)">
+                      <button
+                        class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
+                        (click)="confirmDelete(activity)"
+                      >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -157,8 +202,10 @@ interface ActivityGroup {
         @if (hasMore()) {
           <div class="text-center">
             <button class="btn-secondary" (click)="loadMore()" [disabled]="loadingMore()">
-              @if (loadingMore()) { <app-loading-spinner size="sm" /> }
-              Cargar más
+              @if (loadingMore()) {
+                <app-loading-spinner size="sm" />
+              }
+              {{ 'common.load_more' | translate }}
             </button>
           </div>
         }
@@ -166,9 +213,17 @@ interface ActivityGroup {
     </div>
 
     <!-- Create modal -->
-    <app-modal [isOpen]="showCreateModal()" title="Nueva actividad" (close)="showCreateModal.set(false)">
+    <app-modal
+      [isOpen]="showCreateModal()"
+      [title]="'activities.new' | translate"
+      (close)="showCreateModal.set(false)"
+    >
       <form [formGroup]="form" (ngSubmit)="createActivity()" class="space-y-4">
-        <app-form-field label="Tipo" fieldId="type" [required]="true">
+        <app-form-field
+          [label]="'activities.form.type' | translate"
+          fieldId="type"
+          [required]="true"
+        >
           <select id="type" class="input" formControlName="type">
             @for (type of activityTypes; track type) {
               <option [value]="type">{{ typeLabel(type) }}</option>
@@ -176,33 +231,65 @@ interface ActivityGroup {
           </select>
         </app-form-field>
 
-        <app-form-field label="Asunto" fieldId="subject" [required]="true" [error]="form.get('subject')?.touched && form.get('subject')?.invalid ? 'Requerido' : ''">
-          <input id="subject" type="text" class="input" formControlName="subject" placeholder="Descripción breve" />
+        <app-form-field
+          [label]="'activities.form.subject' | translate"
+          fieldId="subject"
+          [required]="true"
+          [error]="
+            form.get('subject')?.touched && form.get('subject')?.invalid
+              ? ('validation.required_short' | translate)
+              : ''
+          "
+        >
+          <input
+            id="subject"
+            type="text"
+            class="input"
+            formControlName="subject"
+            placeholder="Descripción breve"
+          />
         </app-form-field>
 
-        <app-form-field label="Detalle" fieldId="body">
-          <textarea id="body" class="input h-24 resize-none" formControlName="body"
-            placeholder="Notas adicionales..."></textarea>
+        <app-form-field [label]="'activities.form.body' | translate" fieldId="body">
+          <textarea
+            id="body"
+            class="input h-24 resize-none"
+            formControlName="body"
+            placeholder="Notas adicionales..."
+          ></textarea>
         </app-form-field>
 
-        <app-form-field label="Fecha programada" fieldId="scheduled_at">
-          <input id="scheduled_at" type="datetime-local" class="input" formControlName="scheduled_at" />
+        <app-form-field [label]="'activities.form.scheduled' | translate" fieldId="scheduled_at">
+          <input
+            id="scheduled_at"
+            type="datetime-local"
+            class="input"
+            formControlName="scheduled_at"
+          />
         </app-form-field>
       </form>
 
       <div footer class="flex justify-end gap-3">
-        <button class="btn-secondary" (click)="showCreateModal.set(false)">Cancelar</button>
-        <button class="btn-primary" (click)="createActivity()" [disabled]="creating() || form.invalid">
-          @if (creating()) { <app-loading-spinner size="sm" /> }
-          Crear actividad
+        <button class="btn-secondary" (click)="showCreateModal.set(false)">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          class="btn-primary"
+          (click)="createActivity()"
+          [disabled]="creating() || form.invalid"
+        >
+          @if (creating()) {
+            <app-loading-spinner size="sm" />
+          }
+          {{ 'activities.form.create' | translate }}
         </button>
       </div>
     </app-modal>
 
     <app-confirm-dialog
       [isOpen]="showDeleteDialog()"
-      title="Eliminar actividad"
-      message="¿Eliminar esta actividad? Esta acción no se puede deshacer."
+      [title]="'activities.delete_title' | translate"
+      [message]="'activities.delete_msg' | translate"
       (confirm)="deleteActivity()"
       (cancel)="showDeleteDialog.set(false)"
     />
@@ -214,6 +301,7 @@ export class ActivitiesComponent implements OnInit {
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  readonly translate = inject(TranslateService);
 
   readonly activities = signal<Activity[]>([]);
   readonly loading = signal(true);
@@ -246,7 +334,7 @@ export class ActivitiesComponent implements OnInit {
     }
     return Array.from(groups.entries())
       .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([date, acts]) => ({ date, activities: acts } as ActivityGroup));
+      .map(([date, acts]) => ({ date, activities: acts }) as ActivityGroup);
   };
 
   ngOnInit(): void {
@@ -268,7 +356,7 @@ export class ActivitiesComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar actividades');
+          this.errorHandler.handle(err, this.translate.t('error.load_activities'));
         },
       });
   }
@@ -288,7 +376,7 @@ export class ActivitiesComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.loadingMore.set(false);
-          this.errorHandler.handle(err, 'Error al cargar más actividades');
+          this.errorHandler.handle(err, this.translate.t('error.load_more_activities'));
         },
       });
   }
@@ -322,12 +410,12 @@ export class ActivitiesComponent implements OnInit {
         next: () => {
           this.showCreateModal.set(false);
           this.creating.set(false);
-          this.toast.success('Actividad creada');
+          this.toast.success(this.translate.t('activities.created'));
           this.loadActivities();
         },
         error: (err: unknown) => {
           this.creating.set(false);
-          this.errorHandler.handle(err, 'Error al crear la actividad');
+          this.errorHandler.handle(err, this.translate.t('error.create_activity'));
         },
       });
   }
@@ -338,10 +426,11 @@ export class ActivitiesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toast.success('Actividad completada');
+          this.toast.success(this.translate.t('activities.completed'));
           this.loadActivities();
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al completar la actividad'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.complete_activity')),
       });
   }
 
@@ -359,15 +448,16 @@ export class ActivitiesComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showDeleteDialog.set(false);
-          this.toast.success('Actividad eliminada');
+          this.toast.success(this.translate.t('activities.deleted'));
           this.loadActivities();
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la actividad'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.delete_activity')),
       });
   }
 
   typeLabel(type: ActivityType): string {
-    return ACTIVITY_TYPE_LABELS[type] ?? type;
+    return this.translate.t('activities.type.' + type);
   }
 
   typeVariant(type: ActivityType): BadgeVariant {

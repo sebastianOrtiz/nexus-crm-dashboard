@@ -4,15 +4,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DEFAULT_PAGE_SIZE } from '../../../core/constants';
-import { DEAL_STATUS_LABELS } from '../../../core/labels';
 import { Deal, DealStatus } from '../../../core/models/deal.model';
 import { DealService } from '../../../core/services/deal.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
   open: 'info',
@@ -33,27 +34,39 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
     ConfirmDialogComponent,
     EmptyStateComponent,
     LoadingSpinnerComponent,
+    TranslatePipe,
   ],
   template: `
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-surface-100">Deals</h1>
-          <p class="text-sm text-surface-400 mt-1">{{ total() }} deals en total</p>
+          <h1 class="text-2xl font-bold text-surface-100">{{ 'deals.title' | translate }}</h1>
+          <p class="text-sm text-surface-400 mt-1">
+            {{ translate.t('deals.total', { count: total() }) }}
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <a routerLink="/deals/kanban" class="btn-secondary">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+              />
             </svg>
-            Kanban
+            {{ 'deals.kanban_view' | translate }}
           </a>
           <button class="btn-primary" (click)="goToCreate()">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
-            Nuevo deal
+            {{ 'deals.new' | translate }}
           </button>
         </div>
       </div>
@@ -61,10 +74,10 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
       <!-- Filters -->
       <div class="flex flex-col sm:flex-row gap-3">
         <select class="input w-auto" [(ngModel)]="statusFilter" (ngModelChange)="loadDeals()">
-          <option value="">Todos los estados</option>
-          <option value="open">Abiertos</option>
-          <option value="won">Ganados</option>
-          <option value="lost">Perdidos</option>
+          <option value="">{{ 'deals.all_statuses' | translate }}</option>
+          <option value="open">{{ 'deals.status.open' | translate }}</option>
+          <option value="won">{{ 'deals.status.won' | translate }}</option>
+          <option value="lost">{{ 'deals.status.lost' | translate }}</option>
         </select>
       </div>
 
@@ -72,58 +85,85 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
         <table class="w-full">
           <thead class="bg-surface-800/80 border-b border-surface-700">
             <tr>
-              <th class="table-header">Título</th>
-              <th class="table-header">Etapa</th>
-              <th class="table-header">Estado</th>
-              <th class="table-header">Valor</th>
-              <th class="table-header">Contacto</th>
-              <th class="table-header">Cierre est.</th>
-              <th class="table-header text-right">Acciones</th>
+              <th class="table-header">{{ 'deals.col.title' | translate }}</th>
+              <th class="table-header">{{ 'deals.col.stage' | translate }}</th>
+              <th class="table-header">{{ 'deals.col.status' | translate }}</th>
+              <th class="table-header">{{ 'deals.col.value' | translate }}</th>
+              <th class="table-header">{{ 'deals.col.contact' | translate }}</th>
+              <th class="table-header">{{ 'deals.col.close_date' | translate }}</th>
+              <th class="table-header text-right">{{ 'deals.col.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-700 bg-surface-800">
             @if (loading()) {
-              <tr><td colspan="7" class="py-16"><app-loading-spinner [fullPage]="true" /></td></tr>
+              <tr>
+                <td colspan="7" class="py-16"><app-loading-spinner [fullPage]="true" /></td>
+              </tr>
             } @else if (deals().length === 0) {
               <tr>
                 <td colspan="7">
-                  <app-empty-state title="Sin deals" description="Crea tu primer deal."
-                    actionLabel="Nuevo deal" (action)="goToCreate()" />
+                  <app-empty-state
+                    [title]="'deals.empty_title' | translate"
+                    [description]="'deals.empty_desc' | translate"
+                    [actionLabel]="'deals.new' | translate"
+                    (action)="goToCreate()"
+                  />
                 </td>
               </tr>
             } @else {
               @for (deal of deals(); track deal.id) {
-                <tr class="hover:bg-surface-700/50 transition-colors cursor-pointer"
-                  (click)="goToDetail(deal.id)">
+                <tr
+                  class="hover:bg-surface-700/50 transition-colors cursor-pointer"
+                  (click)="goToDetail(deal.id)"
+                >
                   <td class="table-cell">
                     <span class="font-medium text-surface-100">{{ deal.title }}</span>
                   </td>
                   <td class="table-cell text-surface-400">{{ deal.stage?.name ?? '—' }}</td>
                   <td class="table-cell">
-                    <app-badge [label]="statusLabel(deal.status)" [variant]="statusVariant(deal.status)" />
+                    <app-badge
+                      [label]="statusLabel(deal.status)"
+                      [variant]="statusVariant(deal.status)"
+                    />
                   </td>
                   <td class="table-cell text-surface-200">
                     {{ deal.value != null ? (deal.value | currency: deal.currency) : '—' }}
                   </td>
                   <td class="table-cell text-surface-400">
-                    {{ deal.contact ? deal.contact.first_name + ' ' + deal.contact.last_name : '—' }}
+                    {{
+                      deal.contact ? deal.contact.first_name + ' ' + deal.contact.last_name : '—'
+                    }}
                   </td>
                   <td class="table-cell text-surface-400">
-                    {{ deal.expected_close_date ? (deal.expected_close_date | date: 'dd/MM/yyyy') : '—' }}
+                    {{
+                      deal.expected_close_date
+                        ? (deal.expected_close_date | date: 'dd/MM/yyyy')
+                        : '—'
+                    }}
                   </td>
                   <td class="table-cell text-right" (click)="$event.stopPropagation()">
                     <div class="flex items-center justify-end gap-1">
                       <button class="btn-ghost btn-sm p-1.5" (click)="goToEdit(deal.id)">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
-                      <button class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
-                        (click)="confirmDelete(deal)">
+                      <button
+                        class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
+                        (click)="confirmDelete(deal)"
+                      >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -137,10 +177,24 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
 
       @if (totalPages() > 1) {
         <div class="flex items-center justify-between text-sm text-surface-400">
-          <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+          <span>{{
+            translate.t('common.page_of', { current: currentPage(), total: totalPages() })
+          }}</span>
           <div class="flex gap-1">
-            <button class="btn-ghost btn-sm" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)">Anterior</button>
-            <button class="btn-ghost btn-sm" [disabled]="currentPage() >= totalPages()" (click)="goToPage(currentPage() + 1)">Siguiente</button>
+            <button
+              class="btn-ghost btn-sm"
+              [disabled]="currentPage() <= 1"
+              (click)="goToPage(currentPage() - 1)"
+            >
+              {{ 'common.previous' | translate }}
+            </button>
+            <button
+              class="btn-ghost btn-sm"
+              [disabled]="currentPage() >= totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+            >
+              {{ 'common.next' | translate }}
+            </button>
           </div>
         </div>
       }
@@ -148,8 +202,8 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
 
     <app-confirm-dialog
       [isOpen]="showDeleteDialog()"
-      title="Eliminar deal"
-      [message]="'¿Eliminar ' + (deleteTarget()?.title ?? '') + '?'"
+      [title]="'deals.delete_title' | translate"
+      [message]="translate.t('deals.delete_msg', { name: deleteTarget()?.title ?? '' })"
       (confirm)="deleteDeal()"
       (cancel)="showDeleteDialog.set(false)"
     />
@@ -161,6 +215,7 @@ export class DealsListComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly translate = inject(TranslateService);
 
   readonly deals = signal<Deal[]>([]);
   readonly loading = signal(true);
@@ -195,7 +250,7 @@ export class DealsListComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar deals');
+          this.errorHandler.handle(err, this.translate.t('error.load_deals'));
         },
       });
   }
@@ -218,7 +273,7 @@ export class DealsListComponent implements OnInit {
   }
 
   statusLabel(status: DealStatus): string {
-    return DEAL_STATUS_LABELS[status] ?? status;
+    return this.translate.t('deal_status.' + status);
   }
 
   statusVariant(status: DealStatus): BadgeVariant {
@@ -239,10 +294,11 @@ export class DealsListComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showDeleteDialog.set(false);
-          this.toast.success('Deal eliminado');
+          this.toast.success(this.translate.t('deals.deleted'));
           this.loadDeals();
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar el deal'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.delete_deal')),
       });
   }
 }

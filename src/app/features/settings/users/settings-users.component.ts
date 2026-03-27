@@ -1,18 +1,19 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ROLE_LABELS } from '../../../core/labels';
 import { UserRole } from '../../../core/models/auth.model';
 import { User } from '../../../core/models/user.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { UserService } from '../../../core/services/user.service';
 import { BadgeComponent, BadgeVariant } from '../../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 const ROLE_VARIANT: Record<string, BadgeVariant> = {
   owner: 'purple',
@@ -33,20 +34,27 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
     FormFieldComponent,
     LoadingSpinnerComponent,
     ModalComponent,
+    TranslatePipe,
   ],
   template: `
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-semibold text-surface-100">Usuarios</h2>
-          <p class="text-sm text-surface-400 mt-1">Gestiona los miembros de tu organización</p>
+          <h2 class="text-lg font-semibold text-surface-100">
+            {{ 'settings.users.title' | translate }}
+          </h2>
+          <p class="text-sm text-surface-400 mt-1">{{ 'settings.users.subtitle' | translate }}</p>
         </div>
         <button class="btn-primary" (click)="showInviteModal.set(true)">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+            />
           </svg>
-          Invitar usuario
+          {{ 'settings.users.invite' | translate }}
         </button>
       </div>
 
@@ -57,10 +65,12 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
           <table class="w-full">
             <thead class="bg-surface-800/80 border-b border-surface-700">
               <tr>
-                <th class="table-header">Usuario</th>
-                <th class="table-header">Rol</th>
-                <th class="table-header">Estado</th>
-                <th class="table-header text-right">Acciones</th>
+                <th class="table-header">{{ 'settings.users.col.user' | translate }}</th>
+                <th class="table-header">{{ 'settings.users.col.role' | translate }}</th>
+                <th class="table-header">{{ 'settings.users.col.status' | translate }}</th>
+                <th class="table-header text-right">
+                  {{ 'settings.users.col.actions' | translate }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-surface-700 bg-surface-800">
@@ -68,14 +78,18 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
                 <tr class="hover:bg-surface-700/50">
                   <td class="table-cell">
                     <div class="flex items-center gap-3">
-                      <div class="h-8 w-8 rounded-full bg-primary-600/30 flex items-center justify-center text-xs font-medium text-primary-300 shrink-0">
+                      <div
+                        class="h-8 w-8 rounded-full bg-primary-600/30 flex items-center justify-center text-xs font-medium text-primary-300 shrink-0"
+                      >
                         {{ user.first_name.charAt(0) }}{{ user.last_name.charAt(0) }}
                       </div>
                       <div>
                         <p class="text-sm font-medium text-surface-100">
                           {{ user.first_name }} {{ user.last_name }}
                           @if (user.id === currentUserId()) {
-                            <span class="text-xs text-surface-500 ml-1">(tú)</span>
+                            <span class="text-xs text-surface-500 ml-1">{{
+                              'settings.users.you' | translate
+                            }}</span>
                           }
                         </p>
                         <p class="text-xs text-surface-400">{{ user.email }}</p>
@@ -87,7 +101,11 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
                   </td>
                   <td class="table-cell">
                     <app-badge
-                      [label]="user.is_active ? 'Activo' : 'Inactivo'"
+                      [label]="
+                        user.is_active
+                          ? ('settings.users.active' | translate)
+                          : ('settings.users.inactive' | translate)
+                      "
                       [variant]="user.is_active ? 'success' : 'danger'"
                     />
                   </td>
@@ -95,9 +113,11 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
                     @if (user.role !== 'owner' && user.id !== currentUserId()) {
                       <div class="flex items-center justify-end gap-1">
                         @if (user.is_active) {
-                          <button class="btn-ghost btn-sm text-red-400 hover:text-red-300"
-                            (click)="confirmDeactivate(user)">
-                            Desactivar
+                          <button
+                            class="btn-ghost btn-sm text-red-400 hover:text-red-300"
+                            (click)="confirmDeactivate(user)"
+                          >
+                            {{ 'settings.users.deactivate' | translate }}
                           </button>
                         }
                       </div>
@@ -114,34 +134,66 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
     </div>
 
     <!-- Invite modal -->
-    <app-modal [isOpen]="showInviteModal()" title="Invitar usuario" size="sm" (close)="showInviteModal.set(false)">
+    <app-modal
+      [isOpen]="showInviteModal()"
+      [title]="'settings.users.invite_title' | translate"
+      size="sm"
+      (close)="showInviteModal.set(false)"
+    >
       <form [formGroup]="inviteForm" class="space-y-4">
-        <app-form-field label="Email" fieldId="email" [required]="true"
-          [error]="inviteForm.get('email')?.touched && inviteForm.get('email')?.invalid ? 'Email inválido' : ''">
-          <input id="email" type="email" class="input" formControlName="email" placeholder="usuario@ejemplo.com" />
+        <app-form-field
+          [label]="'auth.email' | translate"
+          fieldId="email"
+          [required]="true"
+          [error]="
+            inviteForm.get('email')?.touched && inviteForm.get('email')?.invalid
+              ? ('validation.email_invalid_short' | translate)
+              : ''
+          "
+        >
+          <input
+            id="email"
+            type="email"
+            class="input"
+            formControlName="email"
+            placeholder="usuario@ejemplo.com"
+          />
         </app-form-field>
-        <app-form-field label="Rol" fieldId="role">
+        <app-form-field [label]="'settings.users.col.role' | translate" fieldId="role">
           <select id="role" class="input" formControlName="role">
-            <option value="member">Miembro</option>
-            <option value="admin">Admin</option>
+            <option value="member">{{ 'settings.users.role.member' | translate }}</option>
+            <option value="admin">{{ 'settings.users.role.admin' | translate }}</option>
           </select>
         </app-form-field>
       </form>
 
       <div footer class="flex justify-end gap-3">
-        <button class="btn-secondary" (click)="showInviteModal.set(false)">Cancelar</button>
-        <button class="btn-primary" (click)="inviteUser()" [disabled]="inviting() || inviteForm.invalid">
-          @if (inviting()) { <app-loading-spinner size="sm" /> }
-          Enviar invitación
+        <button class="btn-secondary" (click)="showInviteModal.set(false)">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          class="btn-primary"
+          (click)="inviteUser()"
+          [disabled]="inviting() || inviteForm.invalid"
+        >
+          @if (inviting()) {
+            <app-loading-spinner size="sm" />
+          }
+          {{ 'settings.users.send_invite' | translate }}
         </button>
       </div>
     </app-modal>
 
     <app-confirm-dialog
       [isOpen]="showDeactivateDialog()"
-      title="Desactivar usuario"
-      [message]="'¿Desactivar a ' + (deactivateTarget()?.first_name ?? '') + ' ' + (deactivateTarget()?.last_name ?? '') + '?'"
-      confirmLabel="Desactivar"
+      [title]="'settings.users.deactivate_title' | translate"
+      [message]="
+        translate.t('settings.users.deactivate_msg', {
+          name:
+            (deactivateTarget()?.first_name ?? '') + ' ' + (deactivateTarget()?.last_name ?? ''),
+        })
+      "
+      [confirmLabel]="'settings.users.deactivate' | translate"
       (confirm)="deactivateUser()"
       (cancel)="showDeactivateDialog.set(false)"
     />
@@ -154,6 +206,7 @@ export class SettingsUsersComponent implements OnInit {
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  readonly translate = inject(TranslateService);
 
   readonly users = signal<User[]>([]);
   readonly loading = signal(true);
@@ -200,12 +253,12 @@ export class SettingsUsersComponent implements OnInit {
         next: () => {
           this.showInviteModal.set(false);
           this.inviting.set(false);
-          this.toast.success('Invitación enviada');
+          this.toast.success(this.translate.t('settings.users.invited'));
           this.loadUsers();
         },
         error: (err: unknown) => {
           this.inviting.set(false);
-          this.errorHandler.handle(err, 'Error al enviar la invitación');
+          this.errorHandler.handle(err, this.translate.t('error.invite_user'));
         },
       });
   }
@@ -224,15 +277,16 @@ export class SettingsUsersComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showDeactivateDialog.set(false);
-          this.toast.success('Usuario desactivado');
+          this.toast.success(this.translate.t('settings.users.deactivated'));
           this.loadUsers();
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al desactivar el usuario'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.deactivate_user')),
       });
   }
 
   roleLabel(role: UserRole): string {
-    return ROLE_LABELS[role] ?? role;
+    return this.translate.t('role.' + role);
   }
 
   roleVariant(role: UserRole): BadgeVariant {

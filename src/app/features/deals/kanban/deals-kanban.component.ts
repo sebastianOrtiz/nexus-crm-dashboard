@@ -17,8 +17,10 @@ import { DealService } from '../../../core/services/deal.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { PipelineService } from '../../../core/services/pipeline.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 interface KanbanColumn {
   stage: PipelineStage;
@@ -37,22 +39,28 @@ interface KanbanColumn {
     RouterLink,
     BadgeComponent,
     LoadingSpinnerComponent,
+    TranslatePipe,
   ],
   template: `
     <div class="space-y-4">
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-surface-100">Pipeline Kanban</h1>
-          <p class="text-sm text-surface-400 mt-1">Arrastra los deals entre etapas</p>
+          <h1 class="text-2xl font-bold text-surface-100">{{ 'kanban.title' | translate }}</h1>
+          <p class="text-sm text-surface-400 mt-1">{{ 'kanban.subtitle' | translate }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <a routerLink="/deals" class="btn-secondary">Vista lista</a>
+          <a routerLink="/deals" class="btn-secondary">{{ 'deals.list_view' | translate }}</a>
           <button class="btn-primary" (click)="goToCreate()">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
-            Nuevo deal
+            {{ 'deals.new' | translate }}
           </button>
         </div>
       </div>
@@ -65,11 +73,14 @@ interface KanbanColumn {
         <!-- Kanban board -->
         <div class="flex gap-4 overflow-x-auto pb-4">
           @for (column of columns(); track column.stage.id) {
-            <div class="flex-shrink-0 w-72">
+            <div class="shrink-0 w-72">
               <!-- Column header -->
               <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex items-center gap-2">
-                  <div class="h-3 w-3 rounded-full" [style.background-color]="column.stage.color"></div>
+                  <div
+                    class="h-3 w-3 rounded-full"
+                    [style.background-color]="column.stage.color"
+                  ></div>
                   <h3 class="font-medium text-surface-200 text-sm">{{ column.stage.name }}</h3>
                   <span class="text-xs text-surface-500 bg-surface-700 rounded-full px-2 py-0.5">
                     {{ column.deals.length }}
@@ -103,7 +114,9 @@ interface KanbanColumn {
                       class="block"
                       (click)="$event.stopPropagation()"
                     >
-                      <p class="text-sm font-medium text-surface-100 line-clamp-2">{{ deal.title }}</p>
+                      <p class="text-sm font-medium text-surface-100 line-clamp-2">
+                        {{ deal.title }}
+                      </p>
 
                       @if (deal.value != null) {
                         <p class="text-sm text-green-400 font-medium mt-1">
@@ -113,9 +126,18 @@ interface KanbanColumn {
 
                       @if (deal.contact) {
                         <p class="text-xs text-surface-400 mt-2 flex items-center gap-1">
-                          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          <svg
+                            class="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
                           </svg>
                           {{ deal.contact.first_name }} {{ deal.contact.last_name }}
                         </p>
@@ -123,30 +145,50 @@ interface KanbanColumn {
 
                       @if (deal.expected_close_date) {
                         <p class="text-xs text-surface-500 mt-1 flex items-center gap-1">
-                          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            class="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                           {{ deal.expected_close_date }}
                         </p>
                       }
 
                       @if (deal.status === 'won') {
-                        <app-badge label="Ganado" variant="success" class="mt-2 block" />
+                        <app-badge
+                          [label]="'kanban.won' | translate"
+                          variant="success"
+                          class="mt-2 block"
+                        />
                       }
                       @if (deal.status === 'lost') {
-                        <app-badge label="Perdido" variant="danger" class="mt-2 block" />
+                        <app-badge
+                          [label]="'kanban.lost' | translate"
+                          variant="danger"
+                          class="mt-2 block"
+                        />
                       }
                     </a>
 
                     <!-- Drag handle placeholder -->
-                    <div *cdkDragPlaceholder class="h-24 rounded-lg bg-surface-700 border-2 border-dashed border-surface-600"></div>
+                    <div
+                      *cdkDragPlaceholder
+                      class="h-24 rounded-lg bg-surface-700 border-2 border-dashed border-surface-600"
+                    ></div>
                   </div>
                 }
 
                 @if (column.deals.length === 0) {
                   <div class="flex items-center justify-center h-20 text-xs text-surface-600">
-                    Arrastra deals aquí
+                    {{ 'kanban.drag_here' | translate }}
                   </div>
                 }
               </div>
@@ -164,6 +206,7 @@ export class DealsKanbanComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   readonly columns = signal<KanbanColumn[]>([]);
   readonly loading = signal(true);
@@ -199,13 +242,13 @@ export class DealsKanbanComponent implements OnInit {
               },
               error: (err: unknown) => {
                 this.loading.set(false);
-                this.errorHandler.handle(err, 'Error al cargar los deals');
+                this.errorHandler.handle(err, this.translate.t('error.load_deals'));
               },
             });
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar el pipeline');
+          this.errorHandler.handle(err, this.translate.t('error.load_pipeline'));
         },
       });
   }
@@ -225,7 +268,12 @@ export class DealsKanbanComponent implements OnInit {
     }
 
     const deal = event.item.data as Deal;
-    transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex,
+    );
 
     this.dealService
       .move(deal.id, { stage_id: targetColumn.stage.id })
@@ -233,8 +281,13 @@ export class DealsKanbanComponent implements OnInit {
       .subscribe({
         error: (err: unknown) => {
           // Revert on error
-          transferArrayItem(event.container.data, event.previousContainer.data, event.currentIndex, event.previousIndex);
-          this.errorHandler.handle(err, 'Error al mover el deal');
+          transferArrayItem(
+            event.container.data,
+            event.previousContainer.data,
+            event.currentIndex,
+            event.previousIndex,
+          );
+          this.errorHandler.handle(err, this.translate.t('error.move_deal'));
         },
       });
   }

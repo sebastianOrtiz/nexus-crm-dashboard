@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
+import { TranslateService } from '../../../core/services/translate.service';
 
 /** Empty state placeholder with optional action button */
 @Component({
@@ -29,7 +30,9 @@ import { Component, input, output } from '@angular/core';
   `,
 })
 export class EmptyStateComponent {
-  title = input('No hay datos');
+  private readonly translate = inject(TranslateService);
+
+  title = input(this.translate.t('common.no_data'));
   description = input('');
   actionLabel = input('');
   action = output<void>();

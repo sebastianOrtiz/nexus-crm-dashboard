@@ -1,4 +1,10 @@
-import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -6,15 +12,23 @@ import { PipelineStage } from '../../core/models/pipeline.model';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { PipelineService } from '../../core/services/pipeline.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TranslateService } from '../../core/services/translate.service';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 const STAGE_COLORS = [
-  '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b',
-  '#10b981', '#ef4444', '#06b6d4', '#84cc16',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#f59e0b',
+  '#10b981',
+  '#ef4444',
+  '#06b6d4',
+  '#84cc16',
 ];
 
 /** Pipeline stages configuration (admin/owner only) */
@@ -31,19 +45,25 @@ const STAGE_COLORS = [
     FormFieldComponent,
     LoadingSpinnerComponent,
     ModalComponent,
+    TranslatePipe,
   ],
   template: `
     <div class="max-w-2xl mx-auto space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-surface-100">Pipeline</h1>
-          <p class="text-sm text-surface-400 mt-1">Gestiona las etapas del pipeline de ventas</p>
+          <h1 class="text-2xl font-bold text-surface-100">{{ 'pipeline.title' | translate }}</h1>
+          <p class="text-sm text-surface-400 mt-1">{{ 'pipeline.subtitle' | translate }}</p>
         </div>
         <button class="btn-primary" (click)="openCreateModal()">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
-          Nueva etapa
+          {{ 'pipeline.new_stage' | translate }}
         </button>
       </div>
 
@@ -51,7 +71,7 @@ const STAGE_COLORS = [
         <div class="flex justify-center py-20"><app-loading-spinner size="lg" /></div>
       } @else {
         <p class="text-sm text-surface-400">
-          Arrastra las etapas para cambiar el orden. Los cambios se guardan automáticamente.
+          {{ 'pipeline.drag_hint' | translate }}
         </p>
 
         <div
@@ -66,24 +86,38 @@ const STAGE_COLORS = [
               class="card flex items-center gap-4 cursor-grab active:cursor-grabbing hover:border-surface-600 transition-colors"
             >
               <!-- Drag handle -->
-              <svg class="h-5 w-5 text-surface-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 8h16M4 16h16" />
+              <svg
+                class="h-5 w-5 text-surface-600 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 8h16M4 16h16"
+                />
               </svg>
 
               <!-- Color dot -->
-              <div class="h-4 w-4 rounded-full shrink-0" [style.background-color]="stage.color"></div>
+              <div
+                class="h-4 w-4 rounded-full shrink-0"
+                [style.background-color]="stage.color"
+              ></div>
 
               <!-- Stage info -->
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-surface-100">{{ stage.name }}</p>
                 <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-xs text-surface-500">Orden: {{ stage.order }}</span>
+                  <span class="text-xs text-surface-500"
+                    >{{ ('pipeline.order' | translate) + ': ' }}{{ stage.order }}</span
+                  >
                   @if (stage.is_won) {
-                    <app-badge label="Ganado" variant="success" />
+                    <app-badge [label]="'pipeline.won' | translate" variant="success" />
                   }
                   @if (stage.is_lost) {
-                    <app-badge label="Perdido" variant="danger" />
+                    <app-badge [label]="'pipeline.lost' | translate" variant="danger" />
                   }
                 </div>
               </div>
@@ -92,20 +126,33 @@ const STAGE_COLORS = [
               <div class="flex items-center gap-1 shrink-0">
                 <button class="btn-ghost btn-sm p-1.5" (click)="openEditModal(stage)">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                 </button>
-                <button class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
-                  (click)="confirmDelete(stage)">
+                <button
+                  class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
+                  (click)="confirmDelete(stage)"
+                >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
 
-              <div *cdkDragPlaceholder class="h-16 rounded-xl bg-surface-700 border-2 border-dashed border-surface-600"></div>
+              <div
+                *cdkDragPlaceholder
+                class="h-16 rounded-xl bg-surface-700 border-2 border-dashed border-surface-600"
+              ></div>
             </div>
           }
         </div>
@@ -115,15 +162,30 @@ const STAGE_COLORS = [
     <!-- Create/Edit modal -->
     <app-modal
       [isOpen]="showModal()"
-      [title]="editTarget() ? 'Editar etapa' : 'Nueva etapa'"
+      [title]="(editTarget() ? 'pipeline.edit_stage' : 'pipeline.new_stage') | translate"
       (close)="showModal.set(false)"
     >
       <form [formGroup]="form" class="space-y-4">
-        <app-form-field label="Nombre" fieldId="name" [required]="true" [error]="form.get('name')?.touched && form.get('name')?.invalid ? 'Requerido' : ''">
-          <input id="name" type="text" class="input" formControlName="name" placeholder="Ej: Propuesta enviada" />
+        <app-form-field
+          [label]="'pipeline.form.name' | translate"
+          fieldId="name"
+          [required]="true"
+          [error]="
+            form.get('name')?.touched && form.get('name')?.invalid
+              ? ('validation.required_short' | translate)
+              : ''
+          "
+        >
+          <input
+            id="name"
+            type="text"
+            class="input"
+            formControlName="name"
+            placeholder="Ej: Propuesta enviada"
+          />
         </app-form-field>
 
-        <app-form-field label="Color" fieldId="color">
+        <app-form-field [label]="'pipeline.form.color' | translate" fieldId="color">
           <div class="flex gap-2 flex-wrap">
             @for (color of stageColors; track color) {
               <button
@@ -140,31 +202,41 @@ const STAGE_COLORS = [
 
         <div class="flex gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded border-surface-600 bg-surface-800 text-primary-600"
-              formControlName="is_won" />
-            <span class="text-sm text-surface-300">Marcar como Ganado</span>
+            <input
+              type="checkbox"
+              class="rounded border-surface-600 bg-surface-800 text-primary-600"
+              formControlName="is_won"
+            />
+            <span class="text-sm text-surface-300">{{ 'pipeline.mark_won' | translate }}</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded border-surface-600 bg-surface-800 text-primary-600"
-              formControlName="is_lost" />
-            <span class="text-sm text-surface-300">Marcar como Perdido</span>
+            <input
+              type="checkbox"
+              class="rounded border-surface-600 bg-surface-800 text-primary-600"
+              formControlName="is_lost"
+            />
+            <span class="text-sm text-surface-300">{{ 'pipeline.mark_lost' | translate }}</span>
           </label>
         </div>
       </form>
 
       <div footer class="flex justify-end gap-3">
-        <button class="btn-secondary" (click)="showModal.set(false)">Cancelar</button>
+        <button class="btn-secondary" (click)="showModal.set(false)">
+          {{ 'common.cancel' | translate }}
+        </button>
         <button class="btn-primary" (click)="saveStage()" [disabled]="saving() || form.invalid">
-          @if (saving()) { <app-loading-spinner size="sm" /> }
-          {{ editTarget() ? 'Guardar cambios' : 'Crear etapa' }}
+          @if (saving()) {
+            <app-loading-spinner size="sm" />
+          }
+          {{ (editTarget() ? 'common.save' : 'pipeline.form.create') | translate }}
         </button>
       </div>
     </app-modal>
 
     <app-confirm-dialog
       [isOpen]="showDeleteDialog()"
-      title="Eliminar etapa"
-      [message]="'¿Eliminar la etapa ' + (deleteTarget()?.name ?? '') + '? Los deals en esta etapa quedarán sin etapa.'"
+      [title]="'pipeline.delete_title' | translate"
+      [message]="translate.t('pipeline.delete_msg', { name: deleteTarget()?.name ?? '' })"
       (confirm)="deleteStage()"
       (cancel)="showDeleteDialog.set(false)"
     />
@@ -176,6 +248,7 @@ export class PipelineComponent implements OnInit {
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  readonly translate = inject(TranslateService);
 
   readonly stages = signal<PipelineStage[]>([]);
   readonly loading = signal(true);
@@ -210,7 +283,7 @@ export class PipelineComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar el pipeline');
+          this.errorHandler.handle(err, this.translate.t('error.load_pipeline'));
         },
       });
   }
@@ -223,12 +296,20 @@ export class PipelineComponent implements OnInit {
 
   openEditModal(stage: PipelineStage): void {
     this.editTarget.set(stage);
-    this.form.patchValue({ name: stage.name, color: stage.color, is_won: stage.is_won, is_lost: stage.is_lost });
+    this.form.patchValue({
+      name: stage.name,
+      color: stage.color,
+      is_won: stage.is_won,
+      is_lost: stage.is_lost,
+    });
     this.showModal.set(true);
   }
 
   saveStage(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.saving.set(true);
     const value = this.form.getRawValue();
     const target = this.editTarget();
@@ -238,7 +319,7 @@ export class PipelineComponent implements OnInit {
       color: value.color ?? STAGE_COLORS[0],
       is_won: value.is_won ?? false,
       is_lost: value.is_lost ?? false,
-      order: target ? target.order : (this.stages().length + 1),
+      order: target ? target.order : this.stages().length + 1,
     };
 
     const req = target
@@ -249,12 +330,16 @@ export class PipelineComponent implements OnInit {
       next: () => {
         this.showModal.set(false);
         this.saving.set(false);
-        this.toast.success(target ? 'Etapa actualizada' : 'Etapa creada');
+        this.toast.success(
+          target
+            ? this.translate.t('pipeline.stage_updated')
+            : this.translate.t('pipeline.stage_created'),
+        );
         this.loadStages();
       },
       error: (err: unknown) => {
         this.saving.set(false);
-        this.errorHandler.handle(err, 'Error al guardar la etapa');
+        this.errorHandler.handle(err, this.translate.t('error.save_stage'));
       },
     });
   }
@@ -269,7 +354,7 @@ export class PipelineComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: (err: unknown) => {
-          this.errorHandler.handle(err, 'Error al reordenar las etapas');
+          this.errorHandler.handle(err, this.translate.t('error.reorder_stages'));
           this.loadStages();
         },
       });
@@ -289,10 +374,11 @@ export class PipelineComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showDeleteDialog.set(false);
-          this.toast.success('Etapa eliminada');
+          this.toast.success(this.translate.t('pipeline.stage_deleted'));
           this.loadStages();
         },
-        error: (err: unknown) => this.errorHandler.handle(err, 'Error al eliminar la etapa'),
+        error: (err: unknown) =>
+          this.errorHandler.handle(err, this.translate.t('error.delete_stage')),
       });
   }
 }

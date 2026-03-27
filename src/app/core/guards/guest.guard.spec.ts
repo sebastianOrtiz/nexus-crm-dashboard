@@ -11,10 +11,7 @@ describe('guestGuard', () => {
     authServiceMock = { isAuthenticated: vi.fn() };
 
     TestBed.configureTestingModule({
-      providers: [
-        provideRouter([]),
-        { provide: AuthService, useValue: authServiceMock },
-      ],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authServiceMock }],
     });
 
     router = TestBed.inject(Router);

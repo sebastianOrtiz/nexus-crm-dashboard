@@ -5,7 +5,6 @@ export const PIPELINE_ROUTES: Routes = [
   {
     path: '',
     canActivate: [adminGuard],
-    loadComponent: () =>
-      import('./pipeline.component').then((m) => m.PipelineComponent),
+    loadComponent: () => import('./pipeline.component').then((m) => m.PipelineComponent),
   },
 ];

@@ -62,8 +62,18 @@ export interface TableColumn {
                   <span class="flex items-center gap-1">
                     {{ col.label }}
                     @if (col.sortable) {
-                      <svg class="h-3 w-3 text-surface-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                      <svg
+                        class="h-3 w-3 text-surface-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                        />
                       </svg>
                     }
                   </span>
@@ -104,7 +114,9 @@ export interface TableColumn {
                   }
                   @if (hasActions()) {
                     <td class="table-cell text-right">
-                      <ng-container *ngTemplateOutlet="actionsTemplate() || null; context: { row }" />
+                      <ng-container
+                        *ngTemplateOutlet="actionsTemplate() || null; context: { row }"
+                      />
                     </td>
                   }
                 </tr>

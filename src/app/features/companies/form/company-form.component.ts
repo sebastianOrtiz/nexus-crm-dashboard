@@ -5,24 +5,31 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CompanyService } from '../../../core/services/company.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /** Company create/edit form */
 @Component({
   selector: 'app-company-form',
   standalone: true,
-  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent, TranslatePipe],
   template: `
     <div class="max-w-2xl mx-auto space-y-6">
       <div class="flex items-center gap-4">
         <button class="btn-ghost p-2" (click)="goBack()">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <h1 class="text-2xl font-bold text-surface-100">
-          {{ isEdit() ? 'Editar empresa' : 'Nueva empresa' }}
+          {{ (isEdit() ? 'companies.edit' : 'companies.new') | translate }}
         </h1>
       </div>
 
@@ -31,53 +38,106 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       } @else {
         <div class="card">
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
-            <app-form-field label="Nombre" fieldId="name" [required]="true" [error]="fieldError('name')">
-              <input id="name" type="text" class="input" formControlName="name" placeholder="Acme Corp" />
+            <app-form-field
+              [label]="'companies.form.name' | translate"
+              fieldId="name"
+              [required]="true"
+              [error]="fieldError('name')"
+            >
+              <input
+                id="name"
+                type="text"
+                class="input"
+                formControlName="name"
+                placeholder="Acme Corp"
+              />
             </app-form-field>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <app-form-field label="Dominio" fieldId="domain">
-                <input id="domain" type="text" class="input" formControlName="domain" placeholder="acme.com" />
+              <app-form-field [label]="'companies.form.domain' | translate" fieldId="domain">
+                <input
+                  id="domain"
+                  type="text"
+                  class="input"
+                  formControlName="domain"
+                  placeholder="acme.com"
+                />
               </app-form-field>
-              <app-form-field label="Sitio web" fieldId="website">
-                <input id="website" type="url" class="input" formControlName="website" placeholder="https://acme.com" />
+              <app-form-field [label]="'companies.form.website' | translate" fieldId="website">
+                <input
+                  id="website"
+                  type="url"
+                  class="input"
+                  formControlName="website"
+                  placeholder="https://acme.com"
+                />
               </app-form-field>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <app-form-field label="Industria" fieldId="industry">
-                <input id="industry" type="text" class="input" formControlName="industry" placeholder="Tecnología" />
+              <app-form-field [label]="'companies.form.industry' | translate" fieldId="industry">
+                <input
+                  id="industry"
+                  type="text"
+                  class="input"
+                  formControlName="industry"
+                  placeholder="Tecnología"
+                />
               </app-form-field>
-              <app-form-field label="Tamaño" fieldId="size">
+              <app-form-field [label]="'companies.form.size' | translate" fieldId="size">
                 <select id="size" class="input" formControlName="size">
-                  <option value="">Seleccionar</option>
-                  <option value="1-10">1-10 empleados</option>
-                  <option value="11-50">11-50 empleados</option>
-                  <option value="51-200">51-200 empleados</option>
-                  <option value="201-500">201-500 empleados</option>
-                  <option value="500+">500+ empleados</option>
+                  <option value="">{{ 'companies.form.select_size' | translate }}</option>
+                  <option value="1-10">1-10 {{ 'companies.form.employees' | translate }}</option>
+                  <option value="11-50">11-50 {{ 'companies.form.employees' | translate }}</option>
+                  <option value="51-200">
+                    51-200 {{ 'companies.form.employees' | translate }}
+                  </option>
+                  <option value="201-500">
+                    201-500 {{ 'companies.form.employees' | translate }}
+                  </option>
+                  <option value="500+">500+ {{ 'companies.form.employees' | translate }}</option>
                 </select>
               </app-form-field>
             </div>
 
-            <app-form-field label="Teléfono" fieldId="phone">
-              <input id="phone" type="tel" class="input" formControlName="phone" placeholder="+54 11 1234-5678" />
+            <app-form-field [label]="'companies.form.phone' | translate" fieldId="phone">
+              <input
+                id="phone"
+                type="tel"
+                class="input"
+                formControlName="phone"
+                placeholder="+54 11 1234-5678"
+              />
             </app-form-field>
 
-            <app-form-field label="Dirección" fieldId="address">
-              <input id="address" type="text" class="input" formControlName="address" placeholder="Av. Corrientes 1234" />
+            <app-form-field [label]="'companies.form.address' | translate" fieldId="address">
+              <input
+                id="address"
+                type="text"
+                class="input"
+                formControlName="address"
+                placeholder="Av. Corrientes 1234"
+              />
             </app-form-field>
 
-            <app-form-field label="Notas" fieldId="notes">
-              <textarea id="notes" class="input h-24 resize-none" formControlName="notes"
-                placeholder="Información adicional..."></textarea>
+            <app-form-field [label]="'companies.form.notes' | translate" fieldId="notes">
+              <textarea
+                id="notes"
+                class="input h-24 resize-none"
+                formControlName="notes"
+                placeholder="Información adicional..."
+              ></textarea>
             </app-form-field>
 
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" class="btn-secondary" (click)="goBack()">Cancelar</button>
+              <button type="button" class="btn-secondary" (click)="goBack()">
+                {{ 'common.cancel' | translate }}
+              </button>
               <button type="submit" class="btn-primary" [disabled]="saving() || form.invalid">
-                @if (saving()) { <app-loading-spinner size="sm" /> }
-                {{ isEdit() ? 'Guardar cambios' : 'Crear empresa' }}
+                @if (saving()) {
+                  <app-loading-spinner size="sm" />
+                }
+                {{ (isEdit() ? 'common.save' : 'companies.form.create') | translate }}
               </button>
             </div>
           </form>
@@ -94,6 +154,7 @@ export class CompanyFormComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
@@ -141,7 +202,7 @@ export class CompanyFormComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.pageLoading.set(false);
-          this.errorHandler.handle(err, 'Error al cargar la empresa');
+          this.errorHandler.handle(err, this.translate.t('error.load_company'));
           this.goBack();
         },
       });
@@ -150,8 +211,8 @@ export class CompanyFormComponent implements OnInit {
   fieldError(field: string): string {
     const ctrl = this.form.get(field);
     if (!ctrl?.touched || ctrl.valid) return '';
-    if (ctrl.hasError('required')) return 'Este campo es requerido';
-    return 'Campo inválido';
+    if (ctrl.hasError('required')) return this.translate.t('validation.required');
+    return this.translate.t('validation.invalid_field');
   }
 
   submit(): void {
@@ -178,12 +239,16 @@ export class CompanyFormComponent implements OnInit {
 
     req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (company) => {
-        this.toast.success(this.isEdit() ? 'Empresa actualizada' : 'Empresa creada');
+        this.toast.success(
+          this.isEdit()
+            ? this.translate.t('companies.updated')
+            : this.translate.t('companies.created'),
+        );
         this.router.navigate(['/companies', company.id]);
       },
       error: (err: unknown) => {
         this.saving.set(false);
-        this.errorHandler.handle(err, 'Error al guardar la empresa');
+        this.errorHandler.handle(err, this.translate.t('error.save_company'));
       },
     });
   }

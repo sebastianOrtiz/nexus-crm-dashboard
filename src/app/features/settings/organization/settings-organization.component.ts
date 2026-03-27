@@ -5,19 +5,23 @@ import { Organization } from '../../../core/models/organization.model';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslateService } from '../../../core/services/translate.service';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /** Organization settings page */
 @Component({
   selector: 'app-settings-organization',
   standalone: true,
-  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule, FormFieldComponent, LoadingSpinnerComponent, TranslatePipe],
   template: `
     <div class="max-w-xl space-y-6">
       <div>
-        <h2 class="text-lg font-semibold text-surface-100">Organización</h2>
-        <p class="text-sm text-surface-400 mt-1">Configura los datos de tu organización</p>
+        <h2 class="text-lg font-semibold text-surface-100">
+          {{ 'settings.org.title' | translate }}
+        </h2>
+        <p class="text-sm text-surface-400 mt-1">{{ 'settings.org.subtitle' | translate }}</p>
       </div>
 
       @if (loading()) {
@@ -25,25 +29,41 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       } @else {
         <div class="card">
           <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
-            <app-form-field label="Nombre de la organización" fieldId="name" [required]="true"
-              [error]="form.get('name')?.touched && form.get('name')?.invalid ? 'Requerido' : ''">
+            <app-form-field
+              [label]="'settings.org.name' | translate"
+              fieldId="name"
+              [required]="true"
+              [error]="
+                form.get('name')?.touched && form.get('name')?.invalid
+                  ? ('validation.required_short' | translate)
+                  : ''
+              "
+            >
               <input id="name" type="text" class="input" formControlName="name" />
             </app-form-field>
 
             @if (org()) {
               <div>
-                <p class="label">Slug (identificador)</p>
+                <p class="label">{{ 'settings.org.slug' | translate }}</p>
                 <p class="text-sm text-surface-400 bg-surface-700 rounded-lg px-3 py-2">
                   {{ org()!.slug }}
-                  <span class="text-surface-600 ml-2 text-xs">(no se puede cambiar)</span>
+                  <span class="text-surface-600 ml-2 text-xs">{{
+                    'settings.org.slug_readonly' | translate
+                  }}</span>
                 </p>
               </div>
             }
 
             <div class="flex justify-end">
-              <button type="submit" class="btn-primary" [disabled]="saving() || form.invalid || !form.dirty">
-                @if (saving()) { <app-loading-spinner size="sm" /> }
-                Guardar cambios
+              <button
+                type="submit"
+                class="btn-primary"
+                [disabled]="saving() || form.invalid || !form.dirty"
+              >
+                @if (saving()) {
+                  <app-loading-spinner size="sm" />
+                }
+                {{ 'common.save' | translate }}
               </button>
             </div>
           </form>
@@ -58,6 +78,7 @@ export class SettingsOrganizationComponent implements OnInit {
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
 
   readonly org = signal<Organization | null>(null);
   readonly loading = signal(true);
@@ -92,11 +113,11 @@ export class SettingsOrganizationComponent implements OnInit {
           this.org.set(o);
           this.saving.set(false);
           this.form.markAsPristine();
-          this.toast.success('Organización actualizada');
+          this.toast.success(this.translate.t('settings.org.updated'));
         },
         error: (err: unknown) => {
           this.saving.set(false);
-          this.errorHandler.handle(err, 'Error al actualizar la organización');
+          this.errorHandler.handle(err, this.translate.t('error.update_org'));
         },
       });
   }
