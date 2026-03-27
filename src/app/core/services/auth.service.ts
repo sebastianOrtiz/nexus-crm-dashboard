@@ -3,7 +3,13 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthTokens, JwtPayload, LoginRequest, RegisterRequest, UserRole } from '../models/auth.model';
+import {
+  AuthTokens,
+  JwtPayload,
+  LoginRequest,
+  RegisterRequest,
+  UserRole,
+} from '../models/auth.model';
 import { StorageService } from './storage.service';
 
 /**
@@ -34,14 +40,8 @@ export class AuthService {
   });
 
   login(payload: LoginRequest): Observable<AuthTokens> {
-    const form = new URLSearchParams();
-    form.set('username', payload.email);
-    form.set('password', payload.password);
-
     return this.http
-      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/token`, form.toString(), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
+      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/login`, payload)
       .pipe(tap((tokens) => this.handleTokens(tokens)));
   }
 
@@ -54,7 +54,9 @@ export class AuthService {
   refresh(): Observable<AuthTokens> {
     const refreshToken = this.storage.getRefreshToken();
     return this.http
-      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/refresh`, { refresh_token: refreshToken })
+      .post<AuthTokens>(`${environment.nexusCrmApiUrl}/api/v1/auth/refresh`, {
+        refresh_token: refreshToken,
+      })
       .pipe(tap((tokens) => this.handleTokens(tokens)));
   }
 
