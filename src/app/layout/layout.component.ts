@@ -3,32 +3,24 @@ import { RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
-import { ToastComponent } from '../shared/components/toast/toast.component';
-
 /** Shell layout component: sidebar + topbar + router-outlet */
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, ToastComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent],
   template: `
-    <div class="flex h-full">
+    <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
       <app-sidebar [collapsed]="sidebarCollapsed()" (toggleCollapse)="toggleSidebar()" />
 
       <!-- Main -->
       <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <app-topbar
-          [sidebarCollapsed]="sidebarCollapsed()"
-          (toggleSidebar)="toggleSidebar()"
-        />
+        <app-topbar [sidebarCollapsed]="sidebarCollapsed()" (toggleSidebar)="toggleSidebar()" />
         <main class="flex-1 overflow-y-auto p-6 bg-surface-900">
           <router-outlet />
         </main>
       </div>
     </div>
-
-    <!-- Global toast notifications -->
-    <app-toast />
   `,
 })
 export class LayoutComponent {

@@ -32,8 +32,7 @@ export const routes: Routes = [
       },
       {
         path: 'deals',
-        loadChildren: () =>
-          import('./features/deals/deals.routes').then((m) => m.DEALS_ROUTES),
+        loadChildren: () => import('./features/deals/deals.routes').then((m) => m.DEALS_ROUTES),
       },
       {
         path: 'activities',
