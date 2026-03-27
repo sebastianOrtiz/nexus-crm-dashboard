@@ -37,12 +37,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([{ path: 'auth/login', component: DummyComponent }])],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        AuthService,
-        StorageService,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), AuthService, StorageService],
     });
 
     service = TestBed.inject(AuthService);
