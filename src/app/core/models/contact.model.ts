@@ -1,12 +1,6 @@
 import { UserSummary } from './user.model';
 
-export type ContactSource =
-  | 'manual'
-  | 'import'
-  | 'website'
-  | 'referral'
-  | 'social'
-  | 'other';
+export type ContactSource = 'manual' | 'import' | 'website' | 'referral' | 'social' | 'other';
 
 /** Contact entity */
 export interface Contact {

@@ -6,8 +6,8 @@ export interface LoginRequest {
 
 /** Payload for register request */
 export interface RegisterRequest {
-  org_name: string;
-  org_slug: string;
+  organization_name: string;
+  organization_slug: string;
   email: string;
   password: string;
   first_name: string;
@@ -24,9 +24,11 @@ export interface AuthTokens {
 /** JWT payload decoded */
 export interface JwtPayload {
   sub: string;
-  email: string;
-  tenant_id: string;
+  org: string;
   role: UserRole;
+  email: string;
+  name: string;
+  type: string;
   exp: number;
   iat: number;
 }

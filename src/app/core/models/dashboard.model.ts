@@ -1,27 +1,36 @@
-/** Dashboard statistics */
+/** Dashboard statistics (maps to API camelCase response) */
 export interface DashboardStats {
-  total_contacts: number;
-  total_deals: number;
-  total_deal_value: number;
-  conversion_rate: number;
-  currency: string;
+  openDeals: number;
+  totalPipelineValue: number;
+  wonDealsThisMonth: number;
+  revenueThisMonth: number;
+  totalContacts: number;
+  totalCompanies: number;
 }
 
 /** Deals grouped by pipeline stage */
 export interface PipelineFunnelItem {
-  stage_id: string;
-  stage_name: string;
-  stage_color: string;
-  deal_count: number;
-  total_value: number;
+  stageId: string;
+  stageName: string;
+  dealCount: number;
+  totalValue: number;
+}
+
+/** API response wrapper for pipeline */
+export interface PipelineStatsResponse {
+  stages: PipelineFunnelItem[];
 }
 
 /** Monthly revenue data point */
 export interface RevenueDataPoint {
-  month: string;
-  year: number;
+  period: string;
   revenue: number;
-  deal_count: number;
+  dealCount: number;
+}
+
+/** API response wrapper for revenue */
+export interface RevenueStatsResponse {
+  periods: RevenueDataPoint[];
 }
 
 /** Recent activity feed item */
@@ -29,9 +38,12 @@ export interface RecentActivityItem {
   id: string;
   type: string;
   subject: string;
-  entity_type: 'contact' | 'deal' | 'company';
-  entity_id: string;
-  entity_name: string;
-  created_by_name: string;
-  created_at: string;
+  userName: string;
+  createdAt: string;
+}
+
+/** API response wrapper for activity */
+export interface ActivityStatsResponse {
+  recent: RecentActivityItem[];
+  totalThisWeek: number;
 }
