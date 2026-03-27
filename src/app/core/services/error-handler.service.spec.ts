@@ -10,10 +10,7 @@ describe('ErrorHandlerService', () => {
     toastSpy = { error: vi.fn() };
 
     TestBed.configureTestingModule({
-      providers: [
-        ErrorHandlerService,
-        { provide: ToastService, useValue: toastSpy },
-      ],
+      providers: [ErrorHandlerService, { provide: ToastService, useValue: toastSpy }],
     });
 
     service = TestBed.inject(ErrorHandlerService);
@@ -36,7 +33,9 @@ describe('ErrorHandlerService', () => {
     });
 
     it('should extract first FastAPI validation error from array detail', () => {
-      const err = { error: { detail: [{ msg: 'field required', loc: ['body'], type: 'missing' }] } };
+      const err = {
+        error: { detail: [{ msg: 'field required', loc: ['body'], type: 'missing' }] },
+      };
       service.handle(err, 'Create contact');
       expect(toastSpy.error).toHaveBeenCalledWith('Create contact', 'field required');
     });
