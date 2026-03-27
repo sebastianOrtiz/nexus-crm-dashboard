@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_VERSION } from '../constants';
 import {
+  ActivityStatsResponse,
   DashboardStats,
   PipelineFunnelItem,
+  PipelineStatsResponse,
   RecentActivityItem,
   RevenueDataPoint,
+  RevenueStatsResponse,
 } from '../models/dashboard.model';
 import { ApiService } from './api.service';
 
@@ -14,36 +17,25 @@ import { ApiService } from './api.service';
 export class DashboardService extends ApiService {
   private readonly path = `${API_VERSION}/dashboard`;
 
-  /**
-   * Returns aggregated KPI stats for the current tenant.
-   */
   getStats(): Observable<DashboardStats> {
     return this.get<DashboardStats>(`${this.path}/stats`);
   }
 
-  /**
-   * Returns pipeline funnel data grouped by stage.
-   */
   getPipelineFunnel(): Observable<PipelineFunnelItem[]> {
-    return this.get<PipelineFunnelItem[]>(`${this.path}/pipeline-funnel`);
+    return this.get<PipelineStatsResponse>(`${this.path}/pipeline`).pipe(map((res) => res.stages));
   }
 
-  /**
-   * Returns monthly revenue data points.
-   * @param months Number of past months to include (default defined by API)
-   */
   getRevenue(months?: number): Observable<RevenueDataPoint[]> {
-    return this.get<RevenueDataPoint[]>(`${this.path}/revenue`, months ? { months } : undefined);
+    return this.get<RevenueStatsResponse>(
+      `${this.path}/revenue`,
+      months ? { months } : undefined,
+    ).pipe(map((res) => res.periods));
   }
 
-  /**
-   * Returns a list of recent activity feed items.
-   * @param limit Maximum number of items to return
-   */
   getRecentActivity(limit?: number): Observable<RecentActivityItem[]> {
-    return this.get<RecentActivityItem[]>(
-      `${this.path}/recent-activity`,
+    return this.get<ActivityStatsResponse>(
+      `${this.path}/activity`,
       limit ? { limit } : undefined,
-    );
+    ).pipe(map((res) => res.recent));
   }
 }
