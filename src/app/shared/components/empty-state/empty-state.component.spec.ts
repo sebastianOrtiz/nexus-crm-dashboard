@@ -1,13 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { EmptyStateComponent } from './empty-state.component';
+import { TranslateService } from '../../../core/services/translate.service';
 
 describe('EmptyStateComponent', () => {
   let fixture: ComponentFixture<EmptyStateComponent>;
 
   beforeEach(async () => {
+    const translateMock = { t: (key: string) => key };
+
     await TestBed.configureTestingModule({
       imports: [EmptyStateComponent],
+      providers: [{ provide: TranslateService, useValue: translateMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EmptyStateComponent);

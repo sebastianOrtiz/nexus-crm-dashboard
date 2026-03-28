@@ -12,21 +12,23 @@ import { Component } from '@angular/core';
 class DummyComponent {}
 
 const mockTokens: AuthTokens = {
-  accessToken:
+  access_token:
     'eyJhbGciOiJIUzI1NiJ9.' +
     btoa(
       JSON.stringify({
         sub: 'user-1',
         email: 'test@test.com',
-        tenant_id: 'tenant-1',
+        org: 'tenant-1',
         role: 'owner',
+        name: 'Test User',
+        type: 'access',
         exp: Math.floor(Date.now() / 1000) + 3600,
         iat: Math.floor(Date.now() / 1000),
       }),
     ) +
     '.signature',
-  refreshToken: 'refresh-token-value',
-  tokenType: 'bearer',
+  refresh_token: 'refresh-token-value',
+  token_type: 'bearer',
 };
 
 describe('AuthService', () => {
@@ -56,12 +58,12 @@ describe('AuthService', () => {
   });
 
   describe('login()', () => {
-    it('should POST to auth/token and store tokens', () => {
+    it('should POST to auth/login and store tokens', () => {
       service.login({ email: 'test@test.com', password: 'password123' }).subscribe((tokens) => {
-        expect(tokens.accessToken).toBe(mockTokens.accessToken);
+        expect(tokens.access_token).toBe(mockTokens.access_token);
       });
 
-      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
+      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/login`);
       expect(req.request.method).toBe('POST');
       req.flush(mockTokens);
 
@@ -70,7 +72,7 @@ describe('AuthService', () => {
 
     it('should set isAuthenticated to true after login', () => {
       service.login({ email: 'test@test.com', password: 'pass' }).subscribe();
-      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
+      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/login`);
       req.flush(mockTokens);
 
       expect(service.isAuthenticated()).toBe(true);
@@ -81,12 +83,12 @@ describe('AuthService', () => {
     it('should POST to auth/register', () => {
       service
         .register({
-          organizationName: 'Acme',
-          organizationSlug: 'acme',
+          organization_name: 'Acme',
+          organization_slug: 'acme',
           email: 'test@test.com',
           password: 'pass',
-          firstName: 'Juan',
-          lastName: 'Perez',
+          first_name: 'Juan',
+          last_name: 'Perez',
         })
         .subscribe();
 
@@ -99,7 +101,7 @@ describe('AuthService', () => {
   describe('logout()', () => {
     it('should clear tokens and set currentUser to null', () => {
       service.login({ email: 'test@test.com', password: 'pass' }).subscribe();
-      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
+      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/login`);
       req.flush(mockTokens);
 
       service.logout();
@@ -117,7 +119,7 @@ describe('AuthService', () => {
 
       const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/refresh`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ refreshToken: 'my-refresh-token' });
+      expect(req.request.body).toEqual({ refresh_token: 'my-refresh-token' });
       req.flush(mockTokens);
     });
   });
@@ -125,7 +127,7 @@ describe('AuthService', () => {
   describe('isAdminOrOwner()', () => {
     it('should return true when role is owner', () => {
       service.login({ email: 'test@test.com', password: 'pass' }).subscribe();
-      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
+      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/login`);
       req.flush(mockTokens);
 
       expect(service.isAdminOrOwner()).toBe(true);
@@ -139,7 +141,7 @@ describe('AuthService', () => {
   describe('hasRole()', () => {
     it('should return true when user has matching role', () => {
       service.login({ email: 'test@test.com', password: 'pass' }).subscribe();
-      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
+      const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/login`);
       req.flush(mockTokens);
 
       expect(service.hasRole('owner')).toBe(true);

@@ -17,7 +17,8 @@ const mockContact: Contact = {
   phone: null,
   companyId: null,
   companyName: null,
-  source: 'manual',
+  position: null,
+  source: 'other',
   assignedTo: null,
   tags: [],
   notes: null,
@@ -86,7 +87,7 @@ describe('ContactService', () => {
 
   describe('create()', () => {
     it('should POST a new contact', () => {
-      const payload = { firstName: 'Ana', lastName: 'Lopez', source: 'manual' as const };
+      const payload = { firstName: 'Ana', lastName: 'Lopez', source: 'other' as const };
       service.create(payload).subscribe((c) => {
         expect(c.firstName).toBe('Juan');
       });
@@ -100,7 +101,7 @@ describe('ContactService', () => {
 
   describe('update()', () => {
     it('should PUT an existing contact', () => {
-      const payload = { firstName: 'Juan', lastName: 'Updated', source: 'manual' as const };
+      const payload = { firstName: 'Juan', lastName: 'Updated', source: 'other' as const };
       service.update('contact-1', payload).subscribe();
 
       const req = httpMock.expectOne(`${BASE}/contact-1`);

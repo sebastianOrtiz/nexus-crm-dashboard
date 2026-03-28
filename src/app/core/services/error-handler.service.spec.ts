@@ -1,16 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { ErrorHandlerService } from './error-handler.service';
 import { ToastService } from './toast.service';
+import { TranslateService } from './translate.service';
 
 describe('ErrorHandlerService', () => {
   let service: ErrorHandlerService;
   let toastSpy: { error: ReturnType<typeof vi.fn> };
+  let translateSpy: { t: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     toastSpy = { error: vi.fn() };
+    translateSpy = { t: vi.fn((key: string) => key) };
 
     TestBed.configureTestingModule({
-      providers: [ErrorHandlerService, { provide: ToastService, useValue: toastSpy }],
+      providers: [
+        ErrorHandlerService,
+        { provide: ToastService, useValue: toastSpy },
+        { provide: TranslateService, useValue: translateSpy },
+      ],
     });
 
     service = TestBed.inject(ErrorHandlerService);
@@ -42,26 +49,26 @@ describe('ErrorHandlerService', () => {
 
     it('should use generic message for unknown error shape', () => {
       service.handle(null, 'Unknown operation');
-      expect(toastSpy.error).toHaveBeenCalledWith(
-        'Unknown operation',
-        'Ocurrió un error inesperado. Intenta de nuevo.',
-      );
+      expect(toastSpy.error).toHaveBeenCalledWith('Unknown operation', 'error.generic');
     });
 
     it('should use generic message for undefined error', () => {
       service.handle(undefined, 'Test context');
-      expect(toastSpy.error).toHaveBeenCalledWith(
-        'Test context',
-        'Ocurrió un error inesperado. Intenta de nuevo.',
-      );
+      expect(toastSpy.error).toHaveBeenCalledWith('Test context', 'error.generic');
     });
 
     it('should use generic message when error is a plain string', () => {
       service.handle('some error string', 'Test');
-      expect(toastSpy.error).toHaveBeenCalledWith(
-        'Test',
-        'Ocurrió un error inesperado. Intenta de nuevo.',
+      expect(toastSpy.error).toHaveBeenCalledWith('Test', 'error.generic');
+    });
+
+    it('should translate known API error messages', () => {
+      translateSpy.t.mockImplementation((key: string) =>
+        key === 'api.invalid_credentials' ? 'Credenciales invalidas' : key,
       );
+      const err = { error: { detail: 'Invalid email or password' }, status: 401 };
+      service.handle(err, 'Login');
+      expect(toastSpy.error).toHaveBeenCalledWith('Login', 'Credenciales invalidas');
     });
   });
 });
