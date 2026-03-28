@@ -6,7 +6,14 @@
 export const ACTIVITY_TYPES = ['call', 'email', 'meeting', 'note'] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
-export const CONTACT_SOURCES = ['website', 'referral', 'cold_outreach', 'social_media', 'event', 'other'] as const;
+export const CONTACT_SOURCES = [
+  'website',
+  'referral',
+  'cold_outreach',
+  'social_media',
+  'event',
+  'other',
+] as const;
 export type ContactSource = (typeof CONTACT_SOURCES)[number];
 
 export const DEAL_CURRENCIES = ['USD', 'EUR', 'GBP', 'MXN', 'COP', 'ARS'] as const;

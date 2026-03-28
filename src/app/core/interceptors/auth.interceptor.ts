@@ -21,9 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   const token = storage.getAccessToken();
-  const authReq = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+  const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
   return next(authReq).pipe(
     catchError((error: unknown) => {
@@ -44,9 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       // If a refresh is already in flight, piggyback on it
       if (!refreshInFlight$) {
-        refreshInFlight$ = authService.refresh().pipe(
-          shareReplay(1),
-        );
+        refreshInFlight$ = authService.refresh().pipe(shareReplay(1));
 
         // Clean up after refresh completes (success or error)
         refreshInFlight$.subscribe({

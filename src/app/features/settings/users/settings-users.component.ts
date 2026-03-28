@@ -189,8 +189,7 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
       [title]="'settings.users.deactivate_title' | translate"
       [message]="
         translate.t('settings.users.deactivate_msg', {
-          name:
-            (deactivateTarget()?.firstName ?? '') + ' ' + (deactivateTarget()?.lastName ?? ''),
+          name: (deactivateTarget()?.firstName ?? '') + ' ' + (deactivateTarget()?.lastName ?? ''),
         })
       "
       [confirmLabel]="'settings.users.deactivate' | translate"

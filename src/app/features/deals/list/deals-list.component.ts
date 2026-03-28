@@ -130,15 +130,11 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
                     {{ deal.value != null ? (deal.value | currency: deal.currency) : '—' }}
                   </td>
                   <td class="table-cell text-surface-400">
-                    {{
-                      deal.contact ? deal.contact.firstName + ' ' + deal.contact.lastName : '—'
-                    }}
+                    {{ deal.contact ? deal.contact.firstName + ' ' + deal.contact.lastName : '—' }}
                   </td>
                   <td class="table-cell text-surface-400">
                     {{
-                      deal.expectedCloseDate
-                        ? (deal.expectedCloseDate | date: 'dd/MM/yyyy')
-                        : '—'
+                      deal.expectedCloseDate ? (deal.expectedCloseDate | date: 'dd/MM/yyyy') : '—'
                     }}
                   </td>
                   <td class="table-cell text-right" (click)="$event.stopPropagation()">
