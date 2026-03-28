@@ -127,23 +127,67 @@ interface ActivityGroup {
                     >
                       @switch (activity.type) {
                         @case ('call') {
-                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          <svg
+                            class="h-4 w-4"
+                            [class]="typeIconColor(activity.type)"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                            />
                           </svg>
                         }
                         @case ('email') {
-                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          <svg
+                            class="h-4 w-4"
+                            [class]="typeIconColor(activity.type)"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
                           </svg>
                         }
                         @case ('meeting') {
-                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <svg
+                            class="h-4 w-4"
+                            [class]="typeIconColor(activity.type)"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
                           </svg>
                         }
                         @case ('note') {
-                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <svg
+                            class="h-4 w-4"
+                            [class]="typeIconColor(activity.type)"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
                           </svg>
                         }
                       }
@@ -152,22 +196,31 @@ interface ActivityGroup {
                     <!-- Content -->
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
-                        <p class="text-sm font-medium text-surface-100 truncate" [class.line-through]="activity.completedAt !== null">
+                        <p
+                          class="text-sm font-medium text-surface-100 truncate"
+                          [class.line-through]="activity.completedAt !== null"
+                        >
                           {{ activity.subject }}
                         </p>
                         @if (activity.completedAt !== null) {
-                          <span class="text-xs text-green-400 bg-green-400/10 rounded px-1.5 py-0.5 shrink-0">
+                          <span
+                            class="text-xs text-green-400 bg-green-400/10 rounded px-1.5 py-0.5 shrink-0"
+                          >
                             ✓
                           </span>
                         }
                       </div>
                       @if (activity.description) {
-                        <p class="text-xs text-surface-400 mt-0.5 truncate">{{ activity.description }}</p>
+                        <p class="text-xs text-surface-400 mt-0.5 truncate">
+                          {{ activity.description }}
+                        </p>
                       }
                     </div>
 
                     <!-- Time -->
-                    <span class="text-xs text-surface-500 shrink-0">{{ activity.createdAt | date: 'HH:mm' }}</span>
+                    <span class="text-xs text-surface-500 shrink-0">{{
+                      activity.createdAt | date: 'HH:mm'
+                    }}</span>
 
                     <!-- Actions -->
                     <div class="flex items-center gap-0.5 shrink-0">
@@ -177,8 +230,18 @@ interface ActivityGroup {
                           [title]="'activities.mark_complete' | translate"
                           (click)="$event.stopPropagation(); completeActivity(activity.id)"
                         >
-                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         </button>
                       }
@@ -187,8 +250,12 @@ interface ActivityGroup {
                         (click)="$event.stopPropagation(); confirmDelete(activity)"
                       >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -273,11 +340,7 @@ interface ActivityGroup {
         <button class="btn-secondary" (click)="showModal.set(false)">
           {{ 'common.cancel' | translate }}
         </button>
-        <button
-          class="btn-primary"
-          (click)="saveActivity()"
-          [disabled]="saving() || form.invalid"
-        >
+        <button class="btn-primary" (click)="saveActivity()" [disabled]="saving() || form.invalid">
           @if (saving()) {
             <app-loading-spinner size="sm" />
           }
