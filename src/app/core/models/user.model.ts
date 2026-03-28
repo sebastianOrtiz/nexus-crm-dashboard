@@ -1,28 +1,28 @@
 import { UserRole } from './auth.model';
 
-/** CRM User entity */
+/** CRM User entity (camelCase — matches API response) */
 export interface User {
   id: string;
+  organizationId: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
-  is_active: boolean;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserSummary {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email: string;
 }
 
 export interface UpdateProfileRequest {
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email: string;
 }
 

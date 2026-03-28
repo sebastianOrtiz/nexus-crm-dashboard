@@ -3,24 +3,24 @@ export interface PipelineStage {
   id: string;
   name: string;
   order: number;
-  is_won: boolean;
-  is_lost: boolean;
+  isWon: boolean;
+  isLost: boolean;
   color: string;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePipelineStageRequest {
   name: string;
   order: number;
-  is_won?: boolean;
-  is_lost?: boolean;
+  isWon?: boolean;
+  isLost?: boolean;
   color?: string;
 }
 
 export interface UpdatePipelineStageRequest extends CreatePipelineStageRequest {}
 
 export interface ReorderStagesRequest {
-  stage_ids: string[];
+  stageIds: string[];
 }

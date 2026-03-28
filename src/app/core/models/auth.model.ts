@@ -1,10 +1,12 @@
+import type { UserRole } from '../enums';
+
 /** Payload for login request */
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-/** Payload for register request */
+/** Payload for register request (snake_case — API does NOT use CamelModel here) */
 export interface RegisterRequest {
   organization_name: string;
   organization_slug: string;
@@ -14,7 +16,7 @@ export interface RegisterRequest {
   last_name: string;
 }
 
-/** Response from login/register/refresh */
+/** Response from login/register/refresh (snake_case — OAuth2 standard) */
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;
@@ -33,4 +35,4 @@ export interface JwtPayload {
   iat: number;
 }
 
-export type UserRole = 'owner' | 'admin' | 'member';
+export type { UserRole } from '../enums';

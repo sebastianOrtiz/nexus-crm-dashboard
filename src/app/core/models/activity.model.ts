@@ -1,45 +1,45 @@
+import { ActivityType } from '../enums';
 import { ContactSummary } from './contact.model';
 import { UserSummary } from './user.model';
 
-export type ActivityType = 'call' | 'email' | 'meeting' | 'note' | 'task';
+export type { ActivityType } from '../enums';
 
 /** Activity entity */
 export interface Activity {
   id: string;
+  organizationId: string;
   type: ActivityType;
   subject: string;
-  body: string | null;
-  scheduled_at: string | null;
-  completed_at: string | null;
-  is_completed: boolean;
-  contact_id: string | null;
-  contact: ContactSummary | null;
-  deal_id: string | null;
-  deal_title: string | null;
-  created_by: UserSummary;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
+  description: string | null;
+  contactId: string | null;
+  dealId: string | null;
+  userId: string;
+  scheduledAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  // Expanded relations (not always present from API)
+  contact?: ContactSummary | null;
+  dealTitle?: string | null;
+  createdBy?: UserSummary | null;
 }
 
 export interface CreateActivityRequest {
   type: ActivityType;
   subject: string;
-  body?: string | null;
-  scheduled_at?: string | null;
-  contact_id?: string | null;
-  deal_id?: string | null;
+  description?: string | null;
+  scheduledAt?: string | null;
+  contactId?: string | null;
+  dealId?: string | null;
 }
 
 export interface UpdateActivityRequest extends CreateActivityRequest {
-  is_completed?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface ActivityListParams {
-  type?: ActivityType;
+  activity_type?: ActivityType;
   contact_id?: string;
   deal_id?: string;
-  is_completed?: boolean;
   page?: number;
   page_size?: number;
 }

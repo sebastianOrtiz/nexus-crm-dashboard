@@ -1,40 +1,41 @@
+import { ContactSource } from '../enums';
 import { UserSummary } from './user.model';
 
-export type ContactSource = 'manual' | 'import' | 'website' | 'referral' | 'social' | 'other';
+export type { ContactSource } from '../enums';
 
 /** Contact entity */
 export interface Contact {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email: string | null;
   phone: string | null;
-  company_id: string | null;
-  company_name: string | null;
+  companyId: string | null;
+  companyName: string | null;
   source: ContactSource;
-  assigned_to: UserSummary | null;
+  assignedTo: UserSummary | null;
   tags: string[];
   notes: string | null;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContactSummary {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email: string | null;
 }
 
 export interface CreateContactRequest {
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email?: string | null;
   phone?: string | null;
-  company_id?: string | null;
+  companyId?: string | null;
   source: ContactSource;
-  assigned_to_id?: string | null;
+  assignedToId?: string | null;
   tags?: string[];
   notes?: string | null;
 }
@@ -45,5 +46,5 @@ export interface ContactListParams {
   search?: string;
   source?: ContactSource;
   page?: number;
-  page_size?: number;
+  pageSize?: number;
 }

@@ -12,9 +12,9 @@ export interface Company {
   address: string | null;
   notes: string | null;
   contacts?: ContactSummary[];
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateCompanyRequest {
@@ -33,5 +33,5 @@ export interface UpdateCompanyRequest extends CreateCompanyRequest {}
 export interface CompanyListParams {
   search?: string;
   page?: number;
-  page_size?: number;
+  pageSize?: number;
 }
