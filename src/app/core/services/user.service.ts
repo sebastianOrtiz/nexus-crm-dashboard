@@ -39,11 +39,11 @@ export class UserService extends ApiService {
   }
 
   /**
-   * Sends an invitation email to a new user.
-   * @param payload Invitee email and desired role
+   * Creates a new user in the current tenant.
+   * @param payload User email, role, and password
    */
   inviteUser(payload: InviteUserRequest): Observable<User> {
-    return this.post<User>(`${API_VERSION}/users/invite`, payload);
+    return this.post<User>(`${API_VERSION}/users`, payload);
   }
 
   /**
@@ -52,14 +52,14 @@ export class UserService extends ApiService {
    * @param payload New role
    */
   updateRole(userId: string, payload: UpdateUserRoleRequest): Observable<User> {
-    return this.patch<User>(`${API_VERSION}/users/${userId}/role`, payload);
+    return this.put<User>(`${API_VERSION}/users/${userId}`, payload);
   }
 
   /**
-   * Deactivates a user account (soft delete).
+   * Deactivates a user account by deleting it.
    * @param userId Target user UUID
    */
-  deactivateUser(userId: string): Observable<User> {
-    return this.patch<User>(`${API_VERSION}/users/${userId}/deactivate`, {});
+  deactivateUser(userId: string): Observable<void> {
+    return this.delete<void>(`${API_VERSION}/users/${userId}`);
   }
 }

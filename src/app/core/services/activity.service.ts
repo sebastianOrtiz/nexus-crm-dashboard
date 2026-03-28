@@ -49,11 +49,13 @@ export class ActivityService extends ApiService {
   }
 
   /**
-   * Marks an activity as completed.
+   * Marks an activity as completed by setting completedAt to the current timestamp.
    * @param id Activity UUID
    */
   complete(id: string): Observable<Activity> {
-    return this.patch<Activity>(`${this.path}/${id}/complete`, {});
+    return this.put<Activity>(`${this.path}/${id}`, {
+      completedAt: new Date().toISOString(),
+    });
   }
 
   /**

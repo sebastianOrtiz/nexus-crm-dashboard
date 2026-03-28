@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, map } from 'rxjs';
 import { API_VERSION } from '../constants';
 import {
   CreatePipelineStageRequest,
@@ -47,11 +47,14 @@ export class PipelineService extends ApiService {
   }
 
   /**
-   * Reorders pipeline stages by sending a new position array.
+   * Reorders pipeline stages by updating each stage's order individually.
    * @param payload Array of stage IDs in the desired order
    */
   reorder(payload: ReorderStagesRequest): Observable<PipelineStage[]> {
-    return this.post<PipelineStage[]>(`${this.path}/reorder`, payload);
+    const updates = payload.stageIds.map((id, index) =>
+      this.put<PipelineStage>(`${this.path}/${id}`, { order: index }),
+    );
+    return forkJoin(updates).pipe(map((results) => results));
   }
 
   /**
