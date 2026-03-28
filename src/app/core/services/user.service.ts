@@ -33,9 +33,7 @@ export class UserService extends ApiService {
    * Requires admin or owner role.
    */
   listUsers(): Observable<User[]> {
-    return this.get<PaginatedResponse<User>>(`${API_VERSION}/users`).pipe(
-      map((res) => res.items),
-    );
+    return this.get<PaginatedResponse<User>>(`${API_VERSION}/users`).pipe(map((res) => res.items));
   }
 
   /**

@@ -109,7 +109,37 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
             </button>
           </form>
 
-          <div class="mt-6 text-center">
+          <div class="divider my-5"></div>
+
+          <button
+            type="button"
+            class="btn-secondary w-full"
+            [disabled]="demoLoading()"
+            (click)="loginAsDemo()"
+          >
+            @if (demoLoading()) {
+              <app-loading-spinner size="sm" />
+              {{ 'auth.demo_logging_in' | translate }}
+            } @else {
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+              {{ 'auth.demo_login' | translate }}
+            }
+          </button>
+
+          <div class="mt-5 text-center">
             <p class="text-sm text-surface-400">
               {{ 'auth.no_account' | translate }}
               <a
@@ -135,6 +165,7 @@ export class LoginComponent {
   readonly translate = inject(TranslateService);
 
   readonly loading = signal(false);
+  readonly demoLoading = signal(false);
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -155,6 +186,26 @@ export class LoginComponent {
     if (ctrl.hasError('required')) return this.translate.t('validation.password_required');
     if (ctrl.hasError('minlength')) return this.translate.t('validation.min_chars', { min: 8 });
     return '';
+  }
+
+  loginAsDemo(): void {
+    this.demoLoading.set(true);
+    this.authService
+      .login({ email: 'demo@nexuscrm.dev', password: 'Demo1234!' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success(
+            this.translate.t('auth.welcome'),
+            this.translate.t('auth.login_success'),
+          );
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+          this.demoLoading.set(false);
+          this.errorHandler.handle(err, this.translate.t('auth.login_error'));
+        },
+      });
   }
 
   submit(): void {
