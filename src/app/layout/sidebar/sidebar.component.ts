@@ -26,7 +26,6 @@ const NAV_ITEMS: NavItem[] = [
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive, TranslatePipe],
-  host: { class: 'h-full shrink-0' },
   template: `
     <aside
       class="flex flex-col h-full bg-surface-800 border-r border-surface-700 transition-all duration-300 shrink-0"
@@ -59,6 +58,7 @@ const NAV_ITEMS: NavItem[] = [
             routerLinkActive="active"
             class="sidebar-link"
             [title]="collapsed() ? (item.labelKey | translate) : ''"
+            (click)="navLinkClicked.emit()"
           >
             <span class="shrink-0">
               @switch (item.icon) {
@@ -177,6 +177,7 @@ const NAV_ITEMS: NavItem[] = [
 export class SidebarComponent {
   collapsed = input(false);
   toggleCollapse = output<void>();
+  navLinkClicked = output<void>();
 
   private readonly authService = inject(AuthService);
 
