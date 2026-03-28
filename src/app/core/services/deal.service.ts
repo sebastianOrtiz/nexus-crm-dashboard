@@ -55,7 +55,7 @@ export class DealService extends ApiService {
    * @param payload Target stage ID
    */
   move(id: string, payload: MoveDealRequest): Observable<Deal> {
-    return this.patch<Deal>(`${this.path}/${id}/stage`, payload);
+    return this.put<Deal>(`${this.path}/${id}/stage`, payload);
   }
 
   /**

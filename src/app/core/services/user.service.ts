@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_VERSION } from '../constants';
+import { PaginatedResponse } from '../models/api.model';
 import {
   InviteUserRequest,
   UpdateProfileRequest,
@@ -32,7 +33,9 @@ export class UserService extends ApiService {
    * Requires admin or owner role.
    */
   listUsers(): Observable<User[]> {
-    return this.get<User[]>(`${API_VERSION}/users`);
+    return this.get<PaginatedResponse<User>>(`${API_VERSION}/users`).pipe(
+      map((res) => res.items),
+    );
   }
 
   /**

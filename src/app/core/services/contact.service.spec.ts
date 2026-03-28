@@ -11,26 +11,26 @@ const BASE = `${environment.nexusCrmApiUrl}${API_VERSION}/contacts`;
 
 const mockContact: Contact = {
   id: 'contact-1',
-  first_name: 'Juan',
-  last_name: 'Perez',
+  firstName: 'Juan',
+  lastName: 'Perez',
   email: 'juan@test.com',
   phone: null,
-  company_id: null,
-  company_name: null,
+  companyId: null,
+  companyName: null,
   source: 'manual',
-  assigned_to: null,
+  assignedTo: null,
   tags: [],
   notes: null,
-  tenant_id: 'tenant-1',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  tenantId: 'tenant-1',
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const mockPage: PaginatedResponse<Contact> = {
   items: [mockContact],
   total: 1,
   page: 1,
-  page_size: 20,
+  pageSize: 20,
   pages: 1,
 };
 
@@ -86,9 +86,9 @@ describe('ContactService', () => {
 
   describe('create()', () => {
     it('should POST a new contact', () => {
-      const payload = { first_name: 'Ana', last_name: 'Lopez', source: 'manual' as const };
+      const payload = { firstName: 'Ana', lastName: 'Lopez', source: 'manual' as const };
       service.create(payload).subscribe((c) => {
-        expect(c.first_name).toBe('Juan');
+        expect(c.firstName).toBe('Juan');
       });
 
       const req = httpMock.expectOne(BASE);
@@ -100,7 +100,7 @@ describe('ContactService', () => {
 
   describe('update()', () => {
     it('should PUT an existing contact', () => {
-      const payload = { first_name: 'Juan', last_name: 'Updated', source: 'manual' as const };
+      const payload = { firstName: 'Juan', lastName: 'Updated', source: 'manual' as const };
       service.update('contact-1', payload).subscribe();
 
       const req = httpMock.expectOne(`${BASE}/contact-1`);

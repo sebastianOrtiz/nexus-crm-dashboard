@@ -321,6 +321,9 @@ const ES: Record<string, string> = {
   'activities.form.body': 'Detalle',
   'activities.form.scheduled': 'Fecha programada',
   'activities.form.create': 'Crear actividad',
+  'activities.form.save': 'Guardar cambios',
+  'activities.edit': 'Editar actividad',
+  'activities.updated': 'Actividad actualizada',
   'activities.type.call': 'Llamada',
   'activities.type.email': 'Email',
   'activities.type.meeting': 'Reunión',
@@ -390,11 +393,11 @@ const ES: Record<string, string> = {
   'settings.users.role.admin': 'Admin',
 
   // ── Sources ──
-  'source.manual': 'Manual',
-  'source.import': 'Importado',
   'source.website': 'Sitio web',
   'source.referral': 'Referido',
-  'source.social': 'Redes sociales',
+  'source.cold_outreach': 'Contacto en frío',
+  'source.social_media': 'Redes sociales',
+  'source.event': 'Evento',
   'source.other': 'Otro',
 
   // ── Deal statuses ──
@@ -719,6 +722,9 @@ const EN: Record<string, string> = {
   'activities.form.body': 'Details',
   'activities.form.scheduled': 'Scheduled date',
   'activities.form.create': 'Create activity',
+  'activities.form.save': 'Save changes',
+  'activities.edit': 'Edit activity',
+  'activities.updated': 'Activity updated',
   'activities.type.call': 'Call',
   'activities.type.email': 'Email',
   'activities.type.meeting': 'Meeting',
@@ -787,11 +793,11 @@ const EN: Record<string, string> = {
   'settings.users.role.admin': 'Admin',
 
   // ── Sources ──
-  'source.manual': 'Manual',
-  'source.import': 'Imported',
   'source.website': 'Website',
   'source.referral': 'Referral',
-  'source.social': 'Social media',
+  'source.cold_outreach': 'Cold outreach',
+  'source.social_media': 'Social media',
+  'source.event': 'Event',
   'source.other': 'Other',
 
   // ── Deal statuses ──

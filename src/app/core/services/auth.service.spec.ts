@@ -12,7 +12,7 @@ import { Component } from '@angular/core';
 class DummyComponent {}
 
 const mockTokens: AuthTokens = {
-  access_token:
+  accessToken:
     'eyJhbGciOiJIUzI1NiJ9.' +
     btoa(
       JSON.stringify({
@@ -25,8 +25,8 @@ const mockTokens: AuthTokens = {
       }),
     ) +
     '.signature',
-  refresh_token: 'refresh-token-value',
-  token_type: 'bearer',
+  refreshToken: 'refresh-token-value',
+  tokenType: 'bearer',
 };
 
 describe('AuthService', () => {
@@ -58,7 +58,7 @@ describe('AuthService', () => {
   describe('login()', () => {
     it('should POST to auth/token and store tokens', () => {
       service.login({ email: 'test@test.com', password: 'password123' }).subscribe((tokens) => {
-        expect(tokens.access_token).toBe(mockTokens.access_token);
+        expect(tokens.accessToken).toBe(mockTokens.accessToken);
       });
 
       const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/token`);
@@ -81,12 +81,12 @@ describe('AuthService', () => {
     it('should POST to auth/register', () => {
       service
         .register({
-          org_name: 'Acme',
-          org_slug: 'acme',
+          organizationName: 'Acme',
+          organizationSlug: 'acme',
           email: 'test@test.com',
           password: 'pass',
-          first_name: 'Juan',
-          last_name: 'Perez',
+          firstName: 'Juan',
+          lastName: 'Perez',
         })
         .subscribe();
 
@@ -117,7 +117,7 @@ describe('AuthService', () => {
 
       const req = httpMock.expectOne(`${environment.nexusCrmApiUrl}/api/v1/auth/refresh`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ refresh_token: 'my-refresh-token' });
+      expect(req.request.body).toEqual({ refreshToken: 'my-refresh-token' });
       req.flush(mockTokens);
     });
   });
