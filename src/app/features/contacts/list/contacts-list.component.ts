@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
 import { DEFAULT_PAGE_SIZE } from '../../../core/constants';
+import { CONTACT_SOURCES } from '../../../core/enums';
 import { Contact, ContactSource } from '../../../core/models/contact.model';
 import { ContactService } from '../../../core/services/contact.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
@@ -130,24 +131,24 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                         {{ initials(contact) }}
                       </div>
                       <span class="font-medium text-surface-100">
-                        {{ contact.first_name }} {{ contact.last_name }}
+                        {{ contact.firstName }} {{ contact.lastName }}
                       </span>
                     </div>
                   </td>
                   <td class="table-cell text-surface-400">{{ contact.email ?? '—' }}</td>
-                  <td class="table-cell text-surface-400">{{ contact.company_name ?? '—' }}</td>
+                  <td class="table-cell text-surface-400">{{ contact.companyName ?? '—' }}</td>
                   <td class="table-cell">
                     <app-badge [label]="sourceLabel(contact.source)" variant="info" />
                   </td>
                   <td class="table-cell text-surface-400">
                     {{
-                      contact.assigned_to
-                        ? contact.assigned_to.first_name + ' ' + contact.assigned_to.last_name
+                      contact.assignedTo
+                        ? contact.assignedTo.firstName + ' ' + contact.assignedTo.lastName
                         : '—'
                     }}
                   </td>
                   <td class="table-cell text-surface-400">
-                    {{ contact.created_at | date: 'dd/MM/yyyy' }}
+                    {{ contact.createdAt | date: 'dd/MM/yyyy' }}
                   </td>
                   <td class="table-cell text-right" (click)="$event.stopPropagation()">
                     <div class="flex items-center justify-end gap-1">
@@ -220,7 +221,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
       [title]="'contacts.delete_title' | translate"
       [message]="
         translate.t('contacts.delete_msg', {
-          name: (deleteTarget()?.first_name ?? '') + ' ' + (deleteTarget()?.last_name ?? ''),
+          name: (deleteTarget()?.firstName ?? '') + ' ' + (deleteTarget()?.lastName ?? ''),
         })
       "
       (confirm)="deleteContact()"
@@ -247,14 +248,7 @@ export class ContactsListComponent implements OnInit {
   searchQuery = '';
   sourceFilter = '';
 
-  readonly sources: ContactSource[] = [
-    'manual',
-    'import',
-    'website',
-    'referral',
-    'social',
-    'other',
-  ];
+  readonly sources = CONTACT_SOURCES;
   readonly pageSize = DEFAULT_PAGE_SIZE;
 
   readonly totalPages = () => Math.ceil(this.total() / this.pageSize);
@@ -276,7 +270,7 @@ export class ContactsListComponent implements OnInit {
         search: this.searchQuery || undefined,
         source: (this.sourceFilter as ContactSource) || undefined,
         page: this.currentPage(),
-        page_size: this.pageSize,
+        pageSize: this.pageSize,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -339,7 +333,7 @@ export class ContactsListComponent implements OnInit {
   }
 
   initials(contact: Contact): string {
-    return `${contact.first_name.charAt(0)}${contact.last_name.charAt(0)}`.toUpperCase();
+    return `${contact.firstName.charAt(0)}${contact.lastName.charAt(0)}`.toUpperCase();
   }
 
   sourceLabel(source: ContactSource): string {

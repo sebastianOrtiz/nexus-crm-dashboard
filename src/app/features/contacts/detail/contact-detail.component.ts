@@ -52,7 +52,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
               </div>
               <div>
                 <h1 class="text-2xl font-bold text-surface-100">
-                  {{ contact()!.first_name }} {{ contact()!.last_name }}
+                  {{ contact()!.firstName }} {{ contact()!.lastName }}
                 </h1>
                 <p class="text-sm text-surface-400">
                   {{ contact()!.email ?? ('contacts.no_email' | translate) }}
@@ -86,7 +86,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
               <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
                 {{ 'contacts.detail.company' | translate }}
               </dt>
-              <dd class="text-sm text-surface-200">{{ contact()!.company_name ?? '—' }}</dd>
+              <dd class="text-sm text-surface-200">{{ contact()!.companyName ?? '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
@@ -102,8 +102,8 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
               </dt>
               <dd class="text-sm text-surface-200">
                 {{
-                  contact()!.assigned_to
-                    ? contact()!.assigned_to!.first_name + ' ' + contact()!.assigned_to!.last_name
+                  contact()!.assignedTo
+                    ? contact()!.assignedTo!.firstName + ' ' + contact()!.assignedTo!.lastName
                     : '—'
                 }}
               </dd>
@@ -113,7 +113,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 {{ 'contacts.detail.created' | translate }}
               </dt>
               <dd class="text-sm text-surface-200">
-                {{ contact()!.created_at | date: 'dd/MM/yyyy HH:mm' }}
+                {{ contact()!.createdAt | date: 'dd/MM/yyyy HH:mm' }}
               </dd>
             </div>
             <div>
@@ -121,7 +121,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 {{ 'contacts.detail.updated' | translate }}
               </dt>
               <dd class="text-sm text-surface-200">
-                {{ contact()!.updated_at | date: 'dd/MM/yyyy HH:mm' }}
+                {{ contact()!.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
               </dd>
             </div>
           </dl>
@@ -181,7 +181,7 @@ export class ContactDetailComponent implements OnInit {
   initials(): string {
     const c = this.contact();
     if (!c) return '?';
-    return `${c.first_name.charAt(0)}${c.last_name.charAt(0)}`.toUpperCase();
+    return `${c.firstName.charAt(0)}${c.lastName.charAt(0)}`.toUpperCase();
   }
 
   deleteContact(): void {

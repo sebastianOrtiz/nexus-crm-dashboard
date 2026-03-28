@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DEAL_CURRENCIES } from '../../../core/enums';
 import { PipelineStage } from '../../../core/models/pipeline.model';
 import { DealService } from '../../../core/services/deal.service';
 import { ErrorHandlerService } from '../../../core/services/error-handler.service';
@@ -68,10 +69,9 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
               </app-form-field>
               <app-form-field [label]="'deals.form.currency' | translate" fieldId="currency">
                 <select id="currency" class="input" formControlName="currency">
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="ARS">ARS</option>
-                  <option value="MXN">MXN</option>
+                  @for (c of currencies; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
                 </select>
               </app-form-field>
             </div>
@@ -142,6 +142,7 @@ export class DealFormComponent implements OnInit {
   readonly isEdit = signal(false);
   readonly pageLoading = signal(false);
   readonly saving = signal(false);
+  readonly currencies = DEAL_CURRENCIES;
   readonly stages = signal<PipelineStage[]>([]);
 
   private dealId: string | null = null;
@@ -185,8 +186,8 @@ export class DealFormComponent implements OnInit {
             title: deal.title,
             value: deal.value,
             currency: deal.currency,
-            stage_id: deal.stage_id,
-            expected_close_date: deal.expected_close_date ?? '',
+            stage_id: deal.stageId,
+            expected_close_date: deal.expectedCloseDate ?? '',
             notes: deal.notes ?? '',
           });
           this.pageLoading.set(false);
@@ -217,8 +218,8 @@ export class DealFormComponent implements OnInit {
       title: value.title!,
       value: value.value,
       currency: value.currency ?? 'USD',
-      stage_id: value.stage_id!,
-      expected_close_date: value.expected_close_date || null,
+      stageId: value.stage_id!,
+      expectedClose: value.expected_close_date || null,
       notes: value.notes || null,
     };
 

@@ -81,11 +81,11 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
                       <div
                         class="h-8 w-8 rounded-full bg-primary-600/30 flex items-center justify-center text-xs font-medium text-primary-300 shrink-0"
                       >
-                        {{ user.first_name.charAt(0) }}{{ user.last_name.charAt(0) }}
+                        {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
                       </div>
                       <div>
                         <p class="text-sm font-medium text-surface-100">
-                          {{ user.first_name }} {{ user.last_name }}
+                          {{ user.firstName }} {{ user.lastName }}
                           @if (user.id === currentUserId()) {
                             <span class="text-xs text-surface-500 ml-1">{{
                               'settings.users.you' | translate
@@ -102,17 +102,17 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
                   <td class="table-cell">
                     <app-badge
                       [label]="
-                        user.is_active
+                        user.isActive
                           ? ('settings.users.active' | translate)
                           : ('settings.users.inactive' | translate)
                       "
-                      [variant]="user.is_active ? 'success' : 'danger'"
+                      [variant]="user.isActive ? 'success' : 'danger'"
                     />
                   </td>
                   <td class="table-cell text-right">
                     @if (user.role !== 'owner' && user.id !== currentUserId()) {
                       <div class="flex items-center justify-end gap-1">
-                        @if (user.is_active) {
+                        @if (user.isActive) {
                           <button
                             class="btn-ghost btn-sm text-red-400 hover:text-red-300"
                             (click)="confirmDeactivate(user)"
@@ -190,7 +190,7 @@ const ROLE_VARIANT: Record<string, BadgeVariant> = {
       [message]="
         translate.t('settings.users.deactivate_msg', {
           name:
-            (deactivateTarget()?.first_name ?? '') + ' ' + (deactivateTarget()?.last_name ?? ''),
+            (deactivateTarget()?.firstName ?? '') + ' ' + (deactivateTarget()?.lastName ?? ''),
         })
       "
       [confirmLabel]="'settings.users.deactivate' | translate"

@@ -139,11 +139,11 @@ interface KanbanColumn {
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             />
                           </svg>
-                          {{ deal.contact.first_name }} {{ deal.contact.last_name }}
+                          {{ deal.contact.firstName }} {{ deal.contact.lastName }}
                         </p>
                       }
 
-                      @if (deal.expected_close_date) {
+                      @if (deal.expectedCloseDate) {
                         <p class="text-xs text-surface-500 mt-1 flex items-center gap-1">
                           <svg
                             class="h-3 w-3"
@@ -158,7 +158,7 @@ interface KanbanColumn {
                               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
-                          {{ deal.expected_close_date }}
+                          {{ deal.expectedCloseDate }}
                         </p>
                       }
 
@@ -225,7 +225,7 @@ export class DealsKanbanComponent implements OnInit {
         next: (stages) => {
           const sortedStages = [...stages].sort((a, b) => a.order - b.order);
           this.dealService
-            .list({ page_size: KANBAN_PAGE_SIZE })
+            .list({ pageSize: KANBAN_PAGE_SIZE })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (res) => {
@@ -234,7 +234,7 @@ export class DealsKanbanComponent implements OnInit {
                   columnMap.set(stage.id, { stage, deals: [] });
                 }
                 for (const deal of res.items) {
-                  const col = columnMap.get(deal.stage_id);
+                  const col = columnMap.get(deal.stageId);
                   if (col) col.deals.push(deal);
                 }
                 this.columns.set(Array.from(columnMap.values()));
@@ -276,7 +276,7 @@ export class DealsKanbanComponent implements OnInit {
     );
 
     this.dealService
-      .move(deal.id, { stage_id: targetColumn.stage.id })
+      .move(deal.id, { stageId: targetColumn.stage.id })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: (err: unknown) => {

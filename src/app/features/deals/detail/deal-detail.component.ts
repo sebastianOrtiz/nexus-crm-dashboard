@@ -96,7 +96,7 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
                       [routerLink]="['/contacts', deal()!.contact!.id]"
                       class="text-primary-400 hover:text-primary-300"
                     >
-                      {{ deal()!.contact!.first_name }} {{ deal()!.contact!.last_name }}
+                      {{ deal()!.contact!.firstName }} {{ deal()!.contact!.lastName }}
                     </a>
                   } @else {
                     —
@@ -107,7 +107,7 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
                 <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
                   {{ 'deals.detail.company' | translate }}
                 </dt>
-                <dd class="text-sm text-surface-200">{{ deal()!.company_name ?? '—' }}</dd>
+                <dd class="text-sm text-surface-200">{{ deal()!.companyName ?? '—' }}</dd>
               </div>
               <div>
                 <dt class="text-xs text-surface-500 uppercase tracking-wider mb-1">
@@ -115,8 +115,8 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
                 </dt>
                 <dd class="text-sm text-surface-200">
                   {{
-                    deal()!.assigned_to
-                      ? deal()!.assigned_to!.first_name + ' ' + deal()!.assigned_to!.last_name
+                    deal()!.assignedTo
+                      ? deal()!.assignedTo!.firstName + ' ' + deal()!.assignedTo!.lastName
                       : '—'
                   }}
                 </dd>
@@ -127,8 +127,8 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
                 </dt>
                 <dd class="text-sm text-surface-200">
                   {{
-                    deal()!.expected_close_date
-                      ? (deal()!.expected_close_date! | date: 'dd/MM/yyyy')
+                    deal()!.expectedCloseDate
+                      ? (deal()!.expectedCloseDate! | date: 'dd/MM/yyyy')
                       : '—'
                   }}
                 </dd>
@@ -149,24 +149,27 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
             <h2 class="text-base font-semibold text-surface-100 mb-4">
               {{ 'deals.detail.stage_history' | translate }}
             </h2>
-            @if (deal()!.stage_history.length === 0) {
+            @if (!deal()!.stageHistory?.length) {
               <p class="text-sm text-surface-500">{{ 'deals.detail.no_history' | translate }}</p>
             } @else {
               <div class="space-y-3">
-                @for (entry of deal()!.stage_history; track entry.id) {
+                @for (entry of deal()!.stageHistory!; track entry.id) {
                   <div class="flex items-start gap-3">
                     <div class="h-2 w-2 rounded-full bg-primary-500 mt-1.5 shrink-0"></div>
                     <div>
-                      <p class="text-sm text-surface-200 font-medium">{{ entry.stage_name }}</p>
+                      <p class="text-sm text-surface-200 font-medium">{{ entry.stageName }}</p>
                       <p class="text-xs text-surface-500">
-                        {{ entry.entered_at | date: 'dd/MM/yyyy HH:mm' }}
-                        @if (entry.exited_at) {
-                          → {{ entry.exited_at | date: 'dd/MM/yyyy HH:mm' }}
+                        {{ entry.enteredAt | date: 'dd/MM/yyyy HH:mm' }}
+                        @if (entry.exitedAt) {
+                          → {{ entry.exitedAt | date: 'dd/MM/yyyy HH:mm' }}
                         } @else {
                           <span class="text-primary-400">{{
                             'deals.detail.current' | translate
                           }}</span>
                         }
+                      </p>
+                      <p class="text-xs text-surface-400 mt-0.5">
+                        {{ 'activities.by' | translate }} {{ entry.movedByName }}
                       </p>
                     </div>
                   </div>

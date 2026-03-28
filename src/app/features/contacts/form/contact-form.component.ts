@@ -11,14 +11,7 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
-const SOURCE_VALUES: ContactSource[] = [
-  'manual',
-  'import',
-  'website',
-  'referral',
-  'social',
-  'other',
-];
+import { CONTACT_SOURCES } from '../../../core/enums';
 
 /** Contact create/edit form */
 @Component({
@@ -158,7 +151,7 @@ export class ContactFormComponent implements OnInit {
   readonly pageLoading = signal(false);
   readonly saving = signal(false);
 
-  readonly sources = SOURCE_VALUES;
+  readonly sources = CONTACT_SOURCES;
 
   private contactId: string | null = null;
 
@@ -167,7 +160,7 @@ export class ContactFormComponent implements OnInit {
     last_name: ['', [Validators.required]],
     email: ['', [Validators.email]],
     phone: [''],
-    source: ['manual' as ContactSource, [Validators.required]],
+    source: ['other' as ContactSource, [Validators.required]],
     notes: [''],
   });
 
@@ -187,8 +180,8 @@ export class ContactFormComponent implements OnInit {
       .subscribe({
         next: (contact) => {
           this.form.patchValue({
-            first_name: contact.first_name,
-            last_name: contact.last_name,
+            first_name: contact.firstName,
+            last_name: contact.lastName,
             email: contact.email ?? '',
             phone: contact.phone ?? '',
             source: contact.source,
@@ -221,8 +214,8 @@ export class ContactFormComponent implements OnInit {
     this.saving.set(true);
     const value = this.form.getRawValue();
     const payload = {
-      first_name: value.first_name!,
-      last_name: value.last_name!,
+      firstName: value.first_name!,
+      lastName: value.last_name!,
       email: value.email || null,
       phone: value.phone || null,
       source: value.source as ContactSource,

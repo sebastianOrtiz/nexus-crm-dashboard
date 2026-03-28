@@ -133,7 +133,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                     }
                   </td>
                   <td class="table-cell text-surface-400">
-                    {{ company.created_at | date: 'dd/MM/yyyy' }}
+                    {{ company.createdAt | date: 'dd/MM/yyyy' }}
                   </td>
                   <td class="table-cell text-right" (click)="$event.stopPropagation()">
                     <div class="flex items-center justify-end gap-1">
@@ -240,7 +240,7 @@ export class CompaniesListComponent implements OnInit {
       .list({
         search: this.searchQuery || undefined,
         page: this.currentPage(),
-        page_size: this.pageSize,
+        pageSize: this.pageSize,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

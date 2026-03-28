@@ -113,10 +113,10 @@ const STAGE_COLORS = [
                   <span class="text-xs text-surface-500"
                     >{{ ('pipeline.order' | translate) + ': ' }}{{ stage.order }}</span
                   >
-                  @if (stage.is_won) {
+                  @if (stage.isWon) {
                     <app-badge [label]="'pipeline.won' | translate" variant="success" />
                   }
-                  @if (stage.is_lost) {
+                  @if (stage.isLost) {
                     <app-badge [label]="'pipeline.lost' | translate" variant="danger" />
                   }
                 </div>
@@ -299,8 +299,8 @@ export class PipelineComponent implements OnInit {
     this.form.patchValue({
       name: stage.name,
       color: stage.color,
-      is_won: stage.is_won,
-      is_lost: stage.is_lost,
+      is_won: stage.isWon,
+      is_lost: stage.isLost,
     });
     this.showModal.set(true);
   }
@@ -317,8 +317,8 @@ export class PipelineComponent implements OnInit {
     const payload = {
       name: value.name!,
       color: value.color ?? STAGE_COLORS[0],
-      is_won: value.is_won ?? false,
-      is_lost: value.is_lost ?? false,
+      isWon: value.is_won ?? false,
+      isLost: value.is_lost ?? false,
       order: target ? target.order : this.stages().length + 1,
     };
 
@@ -350,7 +350,7 @@ export class PipelineComponent implements OnInit {
     this.stages.set(stages);
 
     this.pipelineService
-      .reorder({ stage_ids: stages.map((s) => s.id) })
+      .reorder({ stageIds: stages.map((s) => s.id) })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: (err: unknown) => {

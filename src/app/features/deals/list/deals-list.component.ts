@@ -131,13 +131,13 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
                   </td>
                   <td class="table-cell text-surface-400">
                     {{
-                      deal.contact ? deal.contact.first_name + ' ' + deal.contact.last_name : '—'
+                      deal.contact ? deal.contact.firstName + ' ' + deal.contact.lastName : '—'
                     }}
                   </td>
                   <td class="table-cell text-surface-400">
                     {{
-                      deal.expected_close_date
-                        ? (deal.expected_close_date | date: 'dd/MM/yyyy')
+                      deal.expectedCloseDate
+                        ? (deal.expectedCloseDate | date: 'dd/MM/yyyy')
                         : '—'
                     }}
                   </td>
@@ -239,7 +239,7 @@ export class DealsListComponent implements OnInit {
       .list({
         status: (this.statusFilter as DealStatus) || undefined,
         page: this.currentPage(),
-        page_size: this.pageSize,
+        pageSize: this.pageSize,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

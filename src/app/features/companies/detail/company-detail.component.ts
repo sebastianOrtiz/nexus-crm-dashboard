@@ -93,7 +93,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 {{ 'companies.detail.created' | translate }}
               </dt>
               <dd class="text-sm text-surface-200">
-                {{ company()!.created_at | date: 'dd/MM/yyyy' }}
+                {{ company()!.createdAt | date: 'dd/MM/yyyy' }}
               </dd>
             </div>
           </dl>
@@ -123,11 +123,11 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                   <div
                     class="h-8 w-8 rounded-full bg-primary-600/30 flex items-center justify-center text-xs font-medium text-primary-300 shrink-0"
                   >
-                    {{ contact.first_name.charAt(0) }}{{ contact.last_name.charAt(0) }}
+                    {{ contact.firstName.charAt(0) }}{{ contact.lastName.charAt(0) }}
                   </div>
                   <div>
                     <p class="text-sm font-medium text-surface-100">
-                      {{ contact.first_name }} {{ contact.last_name }}
+                      {{ contact.firstName }} {{ contact.lastName }}
                     </p>
                     <p class="text-xs text-surface-400">{{ contact.email ?? '—' }}</p>
                   </div>

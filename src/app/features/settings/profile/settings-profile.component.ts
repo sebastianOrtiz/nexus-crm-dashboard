@@ -32,19 +32,19 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
             <div class="grid grid-cols-2 gap-4">
               <app-form-field
                 [label]="'settings.profile.first_name' | translate"
-                fieldId="first_name"
+                fieldId="firstName"
                 [required]="true"
-                [error]="fieldError('first_name')"
+                [error]="fieldError('firstName')"
               >
-                <input id="first_name" type="text" class="input" formControlName="first_name" />
+                <input id="first_name" type="text" class="input" formControlName="firstName" />
               </app-form-field>
               <app-form-field
                 [label]="'settings.profile.last_name' | translate"
-                fieldId="last_name"
+                fieldId="lastName"
                 [required]="true"
-                [error]="fieldError('last_name')"
+                [error]="fieldError('lastName')"
               >
-                <input id="last_name" type="text" class="input" formControlName="last_name" />
+                <input id="last_name" type="text" class="input" formControlName="lastName" />
               </app-form-field>
             </div>
             <app-form-field
@@ -84,7 +84,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 <dt class="text-sm text-surface-400">
                   {{ 'settings.profile.member_since' | translate }}
                 </dt>
-                <dd class="text-sm text-surface-200">{{ user()!.created_at.split('T')[0] }}</dd>
+                <dd class="text-sm text-surface-200">{{ user()!.createdAt.split('T')[0] }}</dd>
               </div>
             </dl>
           </div>
@@ -106,8 +106,8 @@ export class SettingsProfileComponent implements OnInit {
   readonly saving = signal(false);
 
   readonly form = this.fb.group({
-    first_name: ['', [Validators.required]],
-    last_name: ['', [Validators.required]],
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
   });
 
@@ -119,8 +119,8 @@ export class SettingsProfileComponent implements OnInit {
         next: (u) => {
           this.user.set(u);
           this.form.patchValue({
-            first_name: u.first_name,
-            last_name: u.last_name,
+            firstName: u.firstName,
+            lastName: u.lastName,
             email: u.email,
           });
           this.loading.set(false);
@@ -145,7 +145,7 @@ export class SettingsProfileComponent implements OnInit {
     this.saving.set(true);
     const v = this.form.getRawValue();
     this.userService
-      .updateProfile({ first_name: v.first_name!, last_name: v.last_name!, email: v.email! })
+      .updateProfile({ firstName: v.firstName!, lastName: v.lastName!, email: v.email! })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (u) => {

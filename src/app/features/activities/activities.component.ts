@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DEFAULT_PAGE_SIZE } from '../../core/constants';
+import { ACTIVITY_TYPES } from '../../core/enums';
 import { Activity, ActivityType } from '../../core/models/activity.model';
 import { ActivityService } from '../../core/services/activity.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
@@ -21,7 +22,6 @@ const TYPE_VARIANT: Record<ActivityType, BadgeVariant> = {
   email: 'purple',
   meeting: 'warning',
   note: 'default',
-  task: 'success',
 };
 
 interface ActivityGroup {
@@ -116,9 +116,9 @@ interface ActivityGroup {
 
               <div class="space-y-3">
                 @for (activity of group.activities; track activity.id) {
-                  <div class="card flex items-start gap-4">
+                  <div class="card flex items-center gap-4 cursor-pointer hover:border-surface-600 transition-colors" (click)="openEditModal(activity)">
                     <!-- Type icon -->
-                    <div class="shrink-0 mt-0.5">
+                    <div class="shrink-0">
                       <app-badge
                         [label]="typeLabel(activity.type)"
                         [variant]="typeVariant(activity.type)"
@@ -126,42 +126,35 @@ interface ActivityGroup {
                     </div>
 
                     <div class="flex-1 min-w-0">
-                      <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-medium text-surface-100">{{ activity.subject }}</p>
-                        <span class="text-xs text-surface-500 shrink-0">
-                          {{ activity.created_at | date: 'HH:mm' }}
-                        </span>
-                      </div>
+                      <p class="text-sm font-medium text-surface-100">{{ activity.subject }}</p>
 
-                      @if (activity.body) {
+                      @if (activity.description) {
                         <p class="text-sm text-surface-400 mt-1 whitespace-pre-line">
-                          {{ activity.body }}
+                          {{ activity.description }}
                         </p>
                       }
 
                       <div class="flex items-center gap-3 mt-2 text-xs text-surface-500">
                         @if (activity.contact) {
-                          <span
-                            >{{ activity.contact.first_name }}
-                            {{ activity.contact.last_name }}</span
-                          >
+                          <span>{{ activity.contact.firstName }} {{ activity.contact.lastName }}</span>
                         }
-                        @if (activity.deal_title) {
-                          <span>{{ activity.deal_title }}</span>
+                        @if (activity.dealTitle) {
+                          <span>{{ activity.dealTitle }}</span>
                         }
-                        <span
-                          >{{ 'activities.by' | translate }} {{ activity.created_by.first_name }}
-                          {{ activity.created_by.last_name }}</span
-                        >
+                        @if (activity.createdBy) {
+                          <span>{{ 'activities.by' | translate }} {{ activity.createdBy.firstName }} {{ activity.createdBy.lastName }}</span>
+                        }
                       </div>
                     </div>
 
+                    <span class="text-xs text-surface-500 shrink-0">{{ activity.createdAt | date: 'HH:mm' }}</span>
+
                     <div class="flex items-center gap-1 shrink-0">
-                      @if (!activity.is_completed) {
+                      @if (activity.completedAt === null) {
                         <button
                           class="btn-ghost btn-sm p-1.5 text-green-400"
                           [title]="'activities.mark_complete' | translate"
-                          (click)="completeActivity(activity.id)"
+                          (click)="$event.stopPropagation(); completeActivity(activity.id)"
                         >
                           <svg
                             class="h-4 w-4"
@@ -180,7 +173,7 @@ interface ActivityGroup {
                       }
                       <button
                         class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
-                        (click)="confirmDelete(activity)"
+                        (click)="$event.stopPropagation(); confirmDelete(activity)"
                       >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path
@@ -214,11 +207,11 @@ interface ActivityGroup {
 
     <!-- Create modal -->
     <app-modal
-      [isOpen]="showCreateModal()"
-      [title]="'activities.new' | translate"
-      (close)="showCreateModal.set(false)"
+      [isOpen]="showModal()"
+      [title]="(editTarget() ? 'activities.edit' : 'activities.new') | translate"
+      (close)="showModal.set(false)"
     >
-      <form [formGroup]="form" (ngSubmit)="createActivity()" class="space-y-4">
+      <form [formGroup]="form" (ngSubmit)="saveActivity()" class="space-y-4">
         <app-form-field
           [label]="'activities.form.type' | translate"
           fieldId="type"
@@ -270,18 +263,18 @@ interface ActivityGroup {
       </form>
 
       <div footer class="flex justify-end gap-3">
-        <button class="btn-secondary" (click)="showCreateModal.set(false)">
+        <button class="btn-secondary" (click)="showModal.set(false)">
           {{ 'common.cancel' | translate }}
         </button>
         <button
           class="btn-primary"
-          (click)="createActivity()"
-          [disabled]="creating() || form.invalid"
+          (click)="saveActivity()"
+          [disabled]="saving() || form.invalid"
         >
-          @if (creating()) {
+          @if (saving()) {
             <app-loading-spinner size="sm" />
           }
-          {{ 'activities.form.create' | translate }}
+          {{ (editTarget() ? 'activities.form.save' : 'activities.form.create') | translate }}
         </button>
       </div>
     </app-modal>
@@ -306,14 +299,15 @@ export class ActivitiesComponent implements OnInit {
   readonly activities = signal<Activity[]>([]);
   readonly loading = signal(true);
   readonly loadingMore = signal(false);
-  readonly creating = signal(false);
-  readonly showCreateModal = signal(false);
+  readonly saving = signal(false);
+  readonly showModal = signal(false);
+  readonly editTarget = signal<Activity | null>(null);
   readonly showDeleteDialog = signal(false);
   readonly deleteTarget = signal<Activity | null>(null);
   readonly typeFilter = signal<ActivityType | ''>('');
   readonly hasMore = signal(false);
 
-  readonly activityTypes: ActivityType[] = ['call', 'email', 'meeting', 'note', 'task'];
+  readonly activityTypes = ACTIVITY_TYPES;
 
   private currentPage = 1;
   private readonly pageSize = DEFAULT_PAGE_SIZE;
@@ -328,7 +322,7 @@ export class ActivitiesComponent implements OnInit {
   readonly activityGroups = () => {
     const groups = new Map<string, Activity[]>();
     for (const activity of this.activities()) {
-      const date = activity.created_at.split('T')[0];
+      const date = activity.createdAt.split('T')[0];
       if (!groups.has(date)) groups.set(date, []);
       groups.get(date)!.push(activity);
     }
@@ -346,7 +340,7 @@ export class ActivitiesComponent implements OnInit {
     this.currentPage = 1;
     const type = this.typeFilter() || undefined;
     this.activityService
-      .list({ type, page: 1, page_size: this.pageSize })
+      .list({ activity_type: type, page: 1, page_size: this.pageSize })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -366,7 +360,7 @@ export class ActivitiesComponent implements OnInit {
     this.currentPage++;
     const type = this.typeFilter() || undefined;
     this.activityService
-      .list({ type, page: this.currentPage, page_size: this.pageSize })
+      .list({ activity_type: type, page: this.currentPage, page_size: this.pageSize })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -387,37 +381,53 @@ export class ActivitiesComponent implements OnInit {
   }
 
   openCreateModal(): void {
+    this.editTarget.set(null);
     this.form.reset({ type: 'call' });
-    this.showCreateModal.set(true);
+    this.showModal.set(true);
   }
 
-  createActivity(): void {
+  openEditModal(activity: Activity): void {
+    this.editTarget.set(activity);
+    this.form.patchValue({
+      type: activity.type,
+      subject: activity.subject,
+      body: activity.description ?? '',
+      scheduled_at: activity.scheduledAt?.slice(0, 16) ?? '',
+    });
+    this.showModal.set(true);
+  }
+
+  saveActivity(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.creating.set(true);
+    this.saving.set(true);
     const value = this.form.getRawValue();
-    this.activityService
-      .create({
-        type: value.type as ActivityType,
-        subject: value.subject!,
-        body: value.body || null,
-        scheduled_at: value.scheduled_at || null,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.showCreateModal.set(false);
-          this.creating.set(false);
-          this.toast.success(this.translate.t('activities.created'));
-          this.loadActivities();
-        },
-        error: (err: unknown) => {
-          this.creating.set(false);
-          this.errorHandler.handle(err, this.translate.t('error.create_activity'));
-        },
-      });
+    const payload = {
+      type: value.type as ActivityType,
+      subject: value.subject!,
+      description: value.body || null,
+      scheduledAt: value.scheduled_at || null,
+    };
+
+    const target = this.editTarget();
+    const req = target
+      ? this.activityService.update(target.id, payload)
+      : this.activityService.create(payload);
+
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.showModal.set(false);
+        this.saving.set(false);
+        this.toast.success(this.translate.t(target ? 'activities.updated' : 'activities.created'));
+        this.loadActivities();
+      },
+      error: (err: unknown) => {
+        this.saving.set(false);
+        this.errorHandler.handle(err, this.translate.t('error.create_activity'));
+      },
+    });
   }
 
   completeActivity(id: string): void {
