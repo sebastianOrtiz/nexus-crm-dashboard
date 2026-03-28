@@ -1,59 +1,37 @@
-# NexusCrmDashboard
+# NexusCRM Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+CRM dashboard built with Angular 21, Tailwind CSS 3, and TypeScript.
 
 ## Development server
 
-To start a local development server, run:
-
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Opens at `http://localhost:4200/`. The app reloads automatically on file changes.
 
-## Code scaffolding
+### Dev Container / Docker
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+This project uses the **Webpack builder** (`@angular-devkit/build-angular:browser`) instead of Vite. This is intentional — Vite's dev server relies on WebSockets for ES module loading, which fails silently when ports are forwarded from a dev container (Docker, Codespaces, WSL). The browser loads the HTML but Vite blocks rendering until the WebSocket connects, resulting in an infinite blank page with no errors in the console.
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
+Webpack generates self-contained bundles served over plain HTTP, so port forwarding works without issues.
 
 ## Building
 
-To build the project run:
-
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Build artifacts go to `dist/nexus-crm-dashboard/`.
 
-## Running unit tests
+## i18n
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+The app supports English and Spanish. Language toggle is available in the topbar (authenticated) and on auth pages (login/register). The preference is persisted in `localStorage` and defaults to the browser language.
 
-```bash
-ng test
-```
+Translations are managed in `src/app/core/services/translate.service.ts`.
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Running tests
 
 ```bash
-ng e2e
+npm test
 ```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
