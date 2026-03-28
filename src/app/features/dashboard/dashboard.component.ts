@@ -129,7 +129,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
         </div>
 
         <!-- Charts row -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           <!-- Revenue chart -->
           <div class="card">
             <h2 class="text-base font-semibold text-surface-100 mb-4">
@@ -141,7 +141,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
                 [data]="revenueChartData()!"
                 [options]="barChartOptions"
                 type="bar"
-                class="max-h-64"
+                class="max-h-48 sm:max-h-64"
               ></canvas>
             } @else {
               <div class="h-64 flex items-center justify-center text-surface-500 text-sm">

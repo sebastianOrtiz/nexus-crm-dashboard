@@ -17,7 +17,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
       <div class="flex gap-6 flex-col lg:flex-row">
         <!-- Side nav -->
-        <nav class="flex flex-row lg:flex-col gap-1 lg:w-48 shrink-0">
+        <nav class="flex flex-col sm:flex-row lg:flex-col gap-1 lg:w-48 shrink-0">
           <a routerLink="profile" routerLinkActive="active" class="sidebar-link">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path

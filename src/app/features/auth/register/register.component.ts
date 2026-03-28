@@ -116,7 +116,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 {{ 'auth.your_account' | translate }}
               </h3>
               <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <app-form-field
                     [label]="'auth.first_name' | translate"
                     fieldId="first_name"

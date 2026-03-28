@@ -73,7 +73,7 @@ interface KanbanColumn {
         <!-- Kanban board -->
         <div class="flex gap-4 overflow-x-auto pb-4">
           @for (column of columns(); track column.stage.id) {
-            <div class="shrink-0 w-72">
+            <div class="shrink-0 w-[85vw] sm:w-72">
               <!-- Column header -->
               <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex items-center gap-2">

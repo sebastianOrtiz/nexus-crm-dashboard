@@ -116,7 +116,7 @@ interface ActivityGroup {
               <div class="space-y-2">
                 @for (activity of group.activities; track activity.id) {
                   <div
-                    class="card flex items-center gap-4 cursor-pointer hover:border-surface-600 transition-colors"
+                    class="card flex items-center gap-2 sm:gap-4 cursor-pointer hover:border-surface-600 transition-colors"
                     [class.opacity-60]="activity.completedAt !== null"
                     (click)="openEditModal(activity)"
                   >
