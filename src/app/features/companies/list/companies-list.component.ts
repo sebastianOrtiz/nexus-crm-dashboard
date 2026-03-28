@@ -72,7 +72,78 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
         />
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-surface-700">
+      <!-- Mobile cards (visible below md) -->
+      <div class="md:hidden space-y-3">
+        @if (loading()) {
+          <div class="flex justify-center py-16"><app-loading-spinner size="lg" /></div>
+        } @else if (companies().length === 0) {
+          <app-empty-state
+            [title]="'companies.empty_title' | translate"
+            [description]="'companies.empty_desc' | translate"
+            [actionLabel]="'companies.new' | translate"
+            (action)="goToCreate()"
+          />
+        } @else {
+          @for (company of companies(); track company.id) {
+            <div
+              class="bg-surface-800 rounded-xl border border-surface-700 p-4 cursor-pointer hover:border-surface-600 transition-colors"
+              (click)="goToDetail(company.id)"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="h-9 w-9 rounded-lg bg-surface-700 flex items-center justify-center text-xs font-medium text-surface-300 shrink-0"
+                  >
+                    {{ company.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-medium text-surface-100 truncate">{{ company.name }}</p>
+                    <p class="text-xs text-surface-400 truncate">{{ company.industry ?? '—' }}</p>
+                  </div>
+                </div>
+                @if (company.website) {
+                  <a
+                    [href]="company.website"
+                    target="_blank"
+                    class="text-primary-400 hover:text-primary-300 text-xs shrink-0"
+                    (click)="$event.stopPropagation()"
+                  >
+                    {{ company.domain ?? 'web' }}
+                  </a>
+                }
+              </div>
+              <div class="flex items-center justify-end gap-1 mt-3" (click)="$event.stopPropagation()">
+                <button class="btn-ghost btn-sm p-1.5" (click)="goToEdit(company.id)">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
+                  (click)="confirmDelete(company)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Table (visible from md) -->
+      <div class="hidden md:block overflow-x-auto rounded-xl border border-surface-700">
         <table class="w-full">
           <thead class="bg-surface-800/80 border-b border-surface-700">
             <tr>

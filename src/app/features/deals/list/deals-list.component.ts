@@ -81,7 +81,70 @@ const STATUS_VARIANT: Record<DealStatus, BadgeVariant> = {
         </select>
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-surface-700">
+      <!-- Mobile cards (visible below md) -->
+      <div class="md:hidden space-y-3">
+        @if (loading()) {
+          <div class="flex justify-center py-16"><app-loading-spinner size="lg" /></div>
+        } @else if (deals().length === 0) {
+          <app-empty-state
+            [title]="'deals.empty_title' | translate"
+            [description]="'deals.empty_desc' | translate"
+            [actionLabel]="'deals.new' | translate"
+            (action)="goToCreate()"
+          />
+        } @else {
+          @for (deal of deals(); track deal.id) {
+            <div
+              class="bg-surface-800 rounded-xl border border-surface-700 p-4 cursor-pointer hover:border-surface-600 transition-colors"
+              (click)="goToDetail(deal.id)"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-medium text-surface-100 truncate">{{ deal.title }}</p>
+                  <p class="text-xs text-surface-400 mt-0.5">{{ deal.stage?.name ?? '—' }}</p>
+                </div>
+                <app-badge
+                  [label]="statusLabel(deal.status)"
+                  [variant]="statusVariant(deal.status)"
+                />
+              </div>
+              @if (deal.value != null) {
+                <p class="text-sm text-green-400 font-medium mt-2">
+                  {{ deal.value | currency: deal.currency }}
+                </p>
+              }
+              <div class="flex items-center justify-end gap-1 mt-3" (click)="$event.stopPropagation()">
+                <button class="btn-ghost btn-sm p-1.5" (click)="goToEdit(deal.id)">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="btn-ghost btn-sm p-1.5 text-red-400 hover:text-red-300"
+                  (click)="confirmDelete(deal)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Table (visible from md) -->
+      <div class="hidden md:block overflow-x-auto rounded-xl border border-surface-700">
         <table class="w-full">
           <thead class="bg-surface-800/80 border-b border-surface-700">
             <tr>
