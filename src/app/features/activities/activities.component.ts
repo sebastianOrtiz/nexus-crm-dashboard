@@ -9,7 +9,7 @@ import { ActivityService } from '../../core/services/activity.service';
 import { ErrorHandlerService } from '../../core/services/error-handler.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TranslateService } from '../../core/services/translate.service';
-import { BadgeComponent, BadgeVariant } from '../../shared/components/badge/badge.component';
+import { BadgeVariant } from '../../shared/components/badge/badge.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
@@ -37,7 +37,6 @@ interface ActivityGroup {
     DatePipe,
     FormsModule,
     ReactiveFormsModule,
-    BadgeComponent,
     ConfirmDialogComponent,
     EmptyStateComponent,
     FormFieldComponent,
@@ -114,60 +113,72 @@ interface ActivityGroup {
                 <div class="h-px flex-1 bg-surface-700"></div>
               </h3>
 
-              <div class="space-y-3">
+              <div class="space-y-2">
                 @for (activity of group.activities; track activity.id) {
-                  <div class="card flex items-center gap-4 cursor-pointer hover:border-surface-600 transition-colors" (click)="openEditModal(activity)">
+                  <div
+                    class="card flex items-center gap-4 cursor-pointer hover:border-surface-600 transition-colors"
+                    [class.opacity-60]="activity.completedAt !== null"
+                    (click)="openEditModal(activity)"
+                  >
                     <!-- Type icon -->
-                    <div class="shrink-0">
-                      <app-badge
-                        [label]="typeLabel(activity.type)"
-                        [variant]="typeVariant(activity.type)"
-                      />
+                    <div
+                      class="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
+                      [class]="typeIconBg(activity.type)"
+                    >
+                      @switch (activity.type) {
+                        @case ('call') {
+                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                        }
+                        @case ('email') {
+                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        }
+                        @case ('meeting') {
+                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        }
+                        @case ('note') {
+                          <svg class="h-4 w-4" [class]="typeIconColor(activity.type)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        }
+                      }
                     </div>
 
+                    <!-- Content -->
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-surface-100">{{ activity.subject }}</p>
-
-                      @if (activity.description) {
-                        <p class="text-sm text-surface-400 mt-1 whitespace-pre-line">
-                          {{ activity.description }}
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-medium text-surface-100 truncate" [class.line-through]="activity.completedAt !== null">
+                          {{ activity.subject }}
                         </p>
-                      }
-
-                      <div class="flex items-center gap-3 mt-2 text-xs text-surface-500">
-                        @if (activity.contact) {
-                          <span>{{ activity.contact.firstName }} {{ activity.contact.lastName }}</span>
-                        }
-                        @if (activity.dealTitle) {
-                          <span>{{ activity.dealTitle }}</span>
-                        }
-                        @if (activity.createdBy) {
-                          <span>{{ 'activities.by' | translate }} {{ activity.createdBy.firstName }} {{ activity.createdBy.lastName }}</span>
+                        @if (activity.completedAt !== null) {
+                          <span class="text-xs text-green-400 bg-green-400/10 rounded px-1.5 py-0.5 shrink-0">
+                            ✓
+                          </span>
                         }
                       </div>
+                      @if (activity.description) {
+                        <p class="text-xs text-surface-400 mt-0.5 truncate">{{ activity.description }}</p>
+                      }
                     </div>
 
+                    <!-- Time -->
                     <span class="text-xs text-surface-500 shrink-0">{{ activity.createdAt | date: 'HH:mm' }}</span>
 
-                    <div class="flex items-center gap-1 shrink-0">
+                    <!-- Actions -->
+                    <div class="flex items-center gap-0.5 shrink-0">
                       @if (activity.completedAt === null) {
                         <button
-                          class="btn-ghost btn-sm p-1.5 text-green-400"
+                          class="btn-ghost btn-sm p-1.5 text-green-400 hover:text-green-300"
                           [title]="'activities.mark_complete' | translate"
                           (click)="$event.stopPropagation(); completeActivity(activity.id)"
                         >
-                          <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"
-                            />
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
                       }
@@ -176,12 +187,8 @@ interface ActivityGroup {
                         (click)="$event.stopPropagation(); confirmDelete(activity)"
                       >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>
@@ -472,5 +479,25 @@ export class ActivitiesComponent implements OnInit {
 
   typeVariant(type: ActivityType): BadgeVariant {
     return TYPE_VARIANT[type];
+  }
+
+  typeIconBg(type: ActivityType): string {
+    const map: Record<ActivityType, string> = {
+      call: 'bg-blue-500/15',
+      email: 'bg-purple-500/15',
+      meeting: 'bg-amber-500/15',
+      note: 'bg-surface-600/30',
+    };
+    return map[type];
+  }
+
+  typeIconColor(type: ActivityType): string {
+    const map: Record<ActivityType, string> = {
+      call: 'text-blue-400',
+      email: 'text-purple-400',
+      meeting: 'text-amber-400',
+      note: 'text-surface-300',
+    };
+    return map[type];
   }
 }
