@@ -5,10 +5,10 @@ export interface PipelineStage {
   order: number;
   isWon: boolean;
   isLost: boolean;
-  color: string;
+  color?: string;
   tenantId: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreatePipelineStageRequest {

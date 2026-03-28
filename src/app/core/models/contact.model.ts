@@ -12,6 +12,7 @@ export interface Contact {
   phone: string | null;
   companyId: string | null;
   companyName: string | null;
+  position: string | null;
   source: ContactSource;
   assignedTo: UserSummary | null;
   tags: string[];
@@ -34,6 +35,7 @@ export interface CreateContactRequest {
   email?: string | null;
   phone?: string | null;
   companyId?: string | null;
+  position?: string | null;
   source: ContactSource;
   assignedToId?: string | null;
   tags?: string[];

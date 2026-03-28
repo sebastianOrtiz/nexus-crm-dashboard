@@ -29,6 +29,9 @@ export interface UpdateProfileRequest {
 export interface InviteUserRequest {
   email: string;
   role: UserRole;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface UpdateUserRoleRequest {

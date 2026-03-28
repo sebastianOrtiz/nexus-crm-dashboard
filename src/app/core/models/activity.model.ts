@@ -33,7 +33,7 @@ export interface CreateActivityRequest {
 }
 
 export interface UpdateActivityRequest extends CreateActivityRequest {
-  isCompleted?: boolean;
+  completedAt?: string | null;
 }
 
 export interface ActivityListParams {
