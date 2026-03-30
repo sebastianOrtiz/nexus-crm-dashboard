@@ -45,6 +45,11 @@ export const routes: Routes = [
           import('./features/pipeline/pipeline.routes').then((m) => m.PIPELINE_ROUTES),
       },
       {
+        path: 'events',
+        loadChildren: () =>
+          import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
+      },
+      {
         path: 'settings',
         loadChildren: () =>
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
