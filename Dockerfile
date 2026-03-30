@@ -15,7 +15,7 @@ RUN npm run build
 FROM nginx:alpine AS runner
 
 # Copy Angular build output
-COPY --from=builder /app/dist/nexus-crm-dashboard/browser /usr/share/nginx/html
+COPY --from=builder /app/dist/nexus-crm-dashboard /usr/share/nginx/html
 
 # Nginx config for Angular SPA with hash routing
 RUN printf 'server {\n\
