@@ -213,7 +213,9 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
                 class="shrink-0 mt-0.5 h-6 w-6 rounded bg-green-500/15 flex items-center justify-center text-xs font-bold text-green-400"
                 >Py</span
               >
-              <span class="text-sm text-surface-300">FastAPI — Framework HTTP para la Search API</span>
+              <span class="text-sm text-surface-300"
+                >FastAPI — Framework HTTP para la Search API</span
+              >
             </li>
             <li class="flex items-start gap-3">
               <span

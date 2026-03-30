@@ -50,8 +50,7 @@ export const routes: Routes = [
       },
       {
         path: 'search',
-        loadChildren: () =>
-          import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
+        loadChildren: () => import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
       },
       {
         path: 'settings',

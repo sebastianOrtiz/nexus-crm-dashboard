@@ -271,9 +271,7 @@ export class SearchDocumentsComponent implements OnInit {
 
   confirmDelete(doc: SearchDocument): void {
     this.pendingDeleteId = doc.id;
-    this.deleteMessage.set(
-      this.translate.t('search.documents.delete_msg', { name: doc.filename }),
-    );
+    this.deleteMessage.set(this.translate.t('search.documents.delete_msg', { name: doc.filename }));
     this.confirmOpen.set(true);
   }
 
