@@ -9,6 +9,7 @@ interface NavItem {
   path: string;
   icon: string;
   adminOnly?: boolean;
+  section?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -19,6 +20,12 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'nav.activities', path: '/activities', icon: 'activities' },
   { labelKey: 'nav.pipeline', path: '/pipeline', icon: 'pipeline', adminOnly: true },
   { labelKey: 'nav.settings', path: '/settings', icon: 'settings' },
+  {
+    labelKey: 'events.title',
+    path: '/events',
+    icon: 'events',
+    section: 'nav.section.events',
+  },
 ];
 
 /** Collapsible sidebar navigation */
@@ -53,6 +60,17 @@ const NAV_ITEMS: NavItem[] = [
       <!-- Navigation -->
       <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
         @for (item of visibleNavItems(); track item.path) {
+          @if (item.section) {
+            <div class="pt-4 pb-1 px-3">
+              @if (!collapsed()) {
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-surface-500">
+                  {{ item.section | translate }}
+                </span>
+              } @else {
+                <div class="border-t border-surface-600"></div>
+              }
+            </div>
+          }
           <a
             [routerLink]="item.path"
             routerLinkActive="active"
@@ -119,6 +137,16 @@ const NAV_ITEMS: NavItem[] = [
                       stroke-linejoin="round"
                       stroke-width="1.5"
                       d="M4 6h16M4 12h16M4 18h7"
+                    />
+                  </svg>
+                }
+                @case ('events') {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
                 }
