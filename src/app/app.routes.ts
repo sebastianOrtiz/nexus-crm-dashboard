@@ -49,6 +49,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
       },
       {
+        path: 'search',
+        loadChildren: () =>
+          import('./features/search/search.routes').then((m) => m.SEARCH_ROUTES),
+      },
+      {
         path: 'settings',
         loadChildren: () =>
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),

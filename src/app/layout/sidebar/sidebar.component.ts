@@ -26,6 +26,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'events',
     section: 'nav.section.events',
   },
+  {
+    labelKey: 'search.title',
+    path: '/search',
+    icon: 'search',
+    section: 'nav.section.search',
+  },
 ];
 
 /** Collapsible sidebar navigation */
@@ -147,6 +153,16 @@ const NAV_ITEMS: NavItem[] = [
                       stroke-linejoin="round"
                       stroke-width="1.5"
                       d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                }
+                @case ('search') {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
                   </svg>
                 }
