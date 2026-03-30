@@ -118,7 +118,10 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                 </div>
                 <app-badge [label]="sourceLabel(contact.source)" variant="info" />
               </div>
-              <div class="flex items-center justify-end gap-1 mt-3" (click)="$event.stopPropagation()">
+              <div
+                class="flex items-center justify-end gap-1 mt-3"
+                (click)="$event.stopPropagation()"
+              >
                 <button
                   class="btn-ghost btn-sm p-1.5"
                   [title]="'common.edit' | translate"

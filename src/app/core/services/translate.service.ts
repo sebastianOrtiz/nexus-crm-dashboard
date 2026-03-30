@@ -401,9 +401,11 @@ const ES: Record<string, string> = {
   'events.title': 'Event Service',
   'events.subtitle': 'Pipeline de onboarding event-driven',
   'events.home.heading': 'Arquitectura Event-Driven',
-  'events.home.intro': 'Este servicio demuestra arquitectura basada en eventos usando Redis Streams. Cuando un usuario se registra en NexusCRM, se dispara un flujo de onboarding asíncrono con 4 pasos secuenciales.',
+  'events.home.intro':
+    'Este servicio demuestra arquitectura basada en eventos usando Redis Streams. Cuando un usuario se registra en NexusCRM, se dispara un flujo de onboarding asíncrono con 4 pasos secuenciales.',
   'events.home.how_title': '¿Cómo funciona?',
-  'events.home.how_desc': 'El CRM API envía un evento al registrar un usuario. Cada paso es un worker independiente que consume de Redis Streams, procesa el evento, lo persiste en PostgreSQL y publica el siguiente.',
+  'events.home.how_desc':
+    'El CRM API envía un evento al registrar un usuario. Cada paso es un worker independiente que consume de Redis Streams, procesa el evento, lo persiste en PostgreSQL y publica el siguiente.',
   'events.home.step1_title': 'Verificar email',
   'events.home.step1_desc': 'Simula el envío y verificación del email del nuevo usuario.',
   'events.home.step2_title': 'Crear organización',
@@ -411,7 +413,8 @@ const ES: Record<string, string> = {
   'events.home.step3_title': 'Provisionar datos demo',
   'events.home.step3_desc': 'Simula la creación de datos iniciales para la nueva organización.',
   'events.home.step4_title': 'Enviar bienvenida',
-  'events.home.step4_desc': 'Simula el envío del email de bienvenida y marca el flujo como completado.',
+  'events.home.step4_desc':
+    'Simula el envío del email de bienvenida y marca el flujo como completado.',
   'events.home.tech_title': 'Stack tecnológico',
   'events.home.tech_go': 'Go 1.23 — Binarios separados para API y workers',
   'events.home.tech_redis': 'Redis Streams — Mensajería con consumer groups',
@@ -849,11 +852,13 @@ const EN: Record<string, string> = {
   'events.title': 'Event Service',
   'events.subtitle': 'Event-driven onboarding pipeline',
   'events.home.heading': 'Event-Driven Architecture',
-  'events.home.intro': 'This service demonstrates event-driven architecture using Redis Streams. When a user registers in NexusCRM, an asynchronous onboarding flow is triggered with 4 sequential steps.',
+  'events.home.intro':
+    'This service demonstrates event-driven architecture using Redis Streams. When a user registers in NexusCRM, an asynchronous onboarding flow is triggered with 4 sequential steps.',
   'events.home.how_title': 'How does it work?',
-  'events.home.how_desc': 'The CRM API sends an event when a user registers. Each step is an independent worker that consumes from Redis Streams, processes the event, persists it in PostgreSQL, and publishes the next one.',
+  'events.home.how_desc':
+    'The CRM API sends an event when a user registers. Each step is an independent worker that consumes from Redis Streams, processes the event, persists it in PostgreSQL, and publishes the next one.',
   'events.home.step1_title': 'Verify email',
-  'events.home.step1_desc': 'Simulates sending and verifying the new user\'s email.',
+  'events.home.step1_desc': "Simulates sending and verifying the new user's email.",
   'events.home.step2_title': 'Create organization',
   'events.home.step2_desc': 'Simulates creating the organization in the system.',
   'events.home.step3_title': 'Provision demo data',

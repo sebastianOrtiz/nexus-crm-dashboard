@@ -46,8 +46,7 @@ export const routes: Routes = [
       },
       {
         path: 'events',
-        loadChildren: () =>
-          import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
+        loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
       },
       {
         path: 'settings',

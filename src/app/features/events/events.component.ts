@@ -68,9 +68,9 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
                   <div class="space-y-1 text-xs text-surface-400">
                     <div class="flex justify-between">
                       <span>{{ 'events.correlation_id' | translate }}</span>
-                      <span class="text-surface-300 font-mono">{{
-                        flow.correlationId | slice: 0 : 8
-                      }}...</span>
+                      <span class="text-surface-300 font-mono"
+                        >{{ flow.correlationId | slice: 0 : 8 }}...</span
+                      >
                     </div>
                     <div class="flex justify-between">
                       <span>{{ 'events.started_at' | translate }}</span>
@@ -113,7 +113,9 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
                     ></div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-sm font-medium text-surface-200">{{ event.eventType }}</span>
+                        <span class="text-sm font-medium text-surface-200">{{
+                          event.eventType
+                        }}</span>
                         <span
                           class="px-2 py-0.5 text-xs font-medium rounded-full"
                           [class]="statusBadgeClass(event.status)"
@@ -133,8 +135,18 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
                     </div>
                     @if (event.payload) {
                       <button class="btn-secondary btn-sm shrink-0" (click)="showPayload(event)">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        <svg
+                          class="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                          />
                         </svg>
                         Payload
                       </button>
@@ -155,7 +167,10 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
       size="lg"
       (close)="payloadModalOpen.set(false)"
     >
-      <pre class="text-xs text-surface-300 bg-surface-700/50 rounded-lg p-4 overflow-x-auto font-mono whitespace-pre-wrap break-all max-h-[60vh]">{{ payloadModalContent() }}</pre>
+      <pre
+        class="text-xs text-surface-300 bg-surface-700/50 rounded-lg p-4 overflow-x-auto font-mono whitespace-pre-wrap break-all max-h-[60vh]"
+        >{{ payloadModalContent() }}</pre
+      >
     </app-modal>
   `,
 })

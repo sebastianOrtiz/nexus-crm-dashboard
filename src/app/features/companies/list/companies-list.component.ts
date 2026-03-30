@@ -112,7 +112,10 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
                   </a>
                 }
               </div>
-              <div class="flex items-center justify-end gap-1 mt-3" (click)="$event.stopPropagation()">
+              <div
+                class="flex items-center justify-end gap-1 mt-3"
+                (click)="$event.stopPropagation()"
+              >
                 <button class="btn-ghost btn-sm p-1.5" (click)="goToEdit(company.id)">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path

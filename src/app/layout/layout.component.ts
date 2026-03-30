@@ -34,10 +34,7 @@ import { TopbarComponent } from './topbar/topbar.component';
 
       <!-- Main -->
       <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <app-topbar
-          [sidebarCollapsed]="sidebarCollapsed()"
-          (toggleSidebar)="onToggleSidebar()"
-        />
+        <app-topbar [sidebarCollapsed]="sidebarCollapsed()" (toggleSidebar)="onToggleSidebar()" />
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-surface-900">
           <router-outlet />
         </main>
