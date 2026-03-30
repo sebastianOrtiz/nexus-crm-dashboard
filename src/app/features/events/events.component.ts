@@ -5,13 +5,14 @@ import { OnboardingEvent, OnboardingFlow } from '../../core/models/onboarding.mo
 import { EventsService } from '../../core/services/events.service';
 import { TranslateService } from '../../core/services/translate.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 
 /** Events page — onboarding flows and events timeline */
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [DatePipe, SlicePipe, LoadingSpinnerComponent, TranslatePipe],
+  imports: [DatePipe, SlicePipe, LoadingSpinnerComponent, ModalComponent, TranslatePipe],
   template: `
     <div class="space-y-6">
       <!-- Header -->
@@ -104,30 +105,40 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
           } @else {
             <div class="card divide-y divide-surface-700">
               @for (event of events(); track event.id) {
-                <div class="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                  <div
-                    class="mt-1.5 h-2.5 w-2.5 rounded-full shrink-0"
-                    [class]="statusDotClass(event.status)"
-                  ></div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="text-sm font-medium text-surface-200">{{ event.eventType }}</span>
-                      <span
-                        class="px-2 py-0.5 text-xs font-medium rounded-full"
-                        [class]="statusBadgeClass(event.status)"
-                      >
-                        {{ statusLabel(event.status) }}
-                      </span>
+                <div class="py-3 first:pt-0 last:pb-0">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="h-2.5 w-2.5 rounded-full shrink-0"
+                      [class]="statusDotClass(event.status)"
+                    ></div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm font-medium text-surface-200">{{ event.eventType }}</span>
+                        <span
+                          class="px-2 py-0.5 text-xs font-medium rounded-full"
+                          [class]="statusBadgeClass(event.status)"
+                        >
+                          {{ statusLabel(event.status) }}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-3 mt-0.5 text-xs text-surface-400">
+                        <span>{{ event.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+                        @if (event.retryCount > 0) {
+                          <span class="text-amber-400">Retries: {{ event.retryCount }}</span>
+                        }
+                        @if (event.errorMessage) {
+                          <span class="text-red-400 truncate">{{ event.errorMessage }}</span>
+                        }
+                      </div>
                     </div>
-                    <div class="flex items-center gap-3 mt-1 text-xs text-surface-400">
-                      <span>{{ event.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
-                      @if (event.retryCount > 0) {
-                        <span>Retries: {{ event.retryCount }}</span>
-                      }
-                      @if (event.errorMessage) {
-                        <span class="text-red-400 truncate">{{ event.errorMessage }}</span>
-                      }
-                    </div>
+                    @if (event.payload) {
+                      <button class="btn-secondary btn-sm shrink-0" (click)="showPayload(event)">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        Payload
+                      </button>
+                    }
                   </div>
                 </div>
               }
@@ -136,6 +147,16 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
         </div>
       }
     </div>
+
+    <!-- Payload modal -->
+    <app-modal
+      [isOpen]="payloadModalOpen()"
+      [title]="payloadModalTitle()"
+      size="lg"
+      (close)="payloadModalOpen.set(false)"
+    >
+      <pre class="text-xs text-surface-300 bg-surface-700/50 rounded-lg p-4 overflow-x-auto font-mono whitespace-pre-wrap break-all max-h-[60vh]">{{ payloadModalContent() }}</pre>
+    </app-modal>
   `,
 })
 export class EventsComponent implements OnInit {
@@ -146,6 +167,9 @@ export class EventsComponent implements OnInit {
   readonly loading = signal(true);
   readonly flows = signal<OnboardingFlow[]>([]);
   readonly events = signal<OnboardingEvent[]>([]);
+  readonly payloadModalOpen = signal(false);
+  readonly payloadModalTitle = signal('');
+  readonly payloadModalContent = signal('');
 
   ngOnInit(): void {
     this.loadData();
@@ -190,6 +214,22 @@ export class EventsComponent implements OnInit {
         return 'bg-red-500';
       default:
         return 'bg-surface-500';
+    }
+  }
+
+  showPayload(event: OnboardingEvent): void {
+    this.payloadModalTitle.set(event.eventType);
+    this.payloadModalContent.set(this.formatPayload(event.payload));
+    this.payloadModalOpen.set(true);
+  }
+
+  formatPayload(payload: unknown): string {
+    if (!payload) return '';
+    try {
+      const obj = typeof payload === 'string' ? JSON.parse(payload) : payload;
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return String(payload);
     }
   }
 
