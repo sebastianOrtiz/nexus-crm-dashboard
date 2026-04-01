@@ -47,15 +47,8 @@ const NAV_ITEMS: NavItem[] = [
       <!-- Logo -->
       <div class="flex items-center h-16 px-4 border-b border-surface-700 shrink-0">
         <div class="flex items-center gap-3 overflow-hidden">
-          <div class="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center shrink-0">
-            <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+          <div class="h-8 w-8 flex items-center justify-center shrink-0">
+            <img src="logo.png" alt="NexusCRM" class="h-8 w-auto object-contain" />
           </div>
           @if (!collapsed()) {
             <span class="font-bold text-surface-100 whitespace-nowrap">NexusCRM</span>
