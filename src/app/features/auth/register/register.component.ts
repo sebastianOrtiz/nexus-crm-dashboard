@@ -48,18 +48,7 @@ import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
       <div class="w-full max-w-md">
         <!-- Logo -->
         <div class="text-center mb-8">
-          <div
-            class="inline-flex h-12 w-12 rounded-xl bg-primary-600 items-center justify-center mb-4"
-          >
-            <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          </div>
+          <img src="logo.png" alt="NexusCRM" class="h-12 w-12 rounded-xl mb-4 mx-auto" />
           <h1 class="text-2xl font-bold text-surface-100">
             {{ 'auth.register_title' | translate }}
           </h1>
